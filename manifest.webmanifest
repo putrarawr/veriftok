@@ -1,0 +1,16 @@
+{
+  "id": "/",
+  "name": "VerifTok — Tonton dengan konteks",
+  "short_name": "VerifTok",
+  "description": "Periksa konteks, nada komentar, dan klaim dalam video TikTok.",
+  "lang": "id-ID",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "background_color": "#f4f2ec",
+  "theme_color": "#f4f2ec",
+  "icons": [
+    { "src": "/icons/veriftok-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
+    { "src": "/icons/veriftok-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any maskable" }
+  ]
+}

@@ -1,0 +1,132 @@
+<!doctype html>
+<html lang="id">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <meta name="theme-color" content="#f4f2ec" />
+    <meta name="description" content="Periksa konteks, nada komentar, dan klaim dalam video TikTok sebelum ikut menyebarkannya." />
+    <link rel="manifest" href="/manifest.webmanifest" />
+    <link rel="icon" href="/icons/veriftok.svg" type="image/svg+xml" />
+    <link rel="apple-touch-icon" href="/icons/veriftok-192.png" />
+    <link rel="stylesheet" href="/styles.css" />
+    <title>VerifTok — Tonton dengan konteks</title>
+  </head>
+  <body>
+    <header class="topbar">
+      <a class="brand" href="/" aria-label="VerifTok, beranda">
+        <span class="brand-mark" aria-hidden="true"><span></span><span></span><span></span></span>
+        <span>verif<span class="brand-strong">tok</span></span>
+      </a>
+      <div class="topbar-right">
+        <span class="privacy-note"><span class="privacy-dot"></span> Riwayat tidak disimpan</span>
+        <button class="install-button" id="installButton" type="button" hidden>Pasang aplikasi</button>
+      </div>
+    </header>
+
+    <main>
+      <section class="intro" aria-labelledby="page-title">
+        <div class="intro-copy">
+          <p class="overline"><span class="overline-rule"></span> Jeda sebentar. Periksa konteksnya.</p>
+          <h1 id="page-title">Sebelum percaya,<br /><em>lihat lebih dekat.</em></h1>
+          <p class="intro-description">Tempel tautan TikTok untuk menelaah nada komentar, unsur provokasi, dan klaim yang perlu diperiksa.</p>
+        </div>
+        <div class="intro-aside" aria-label="Prinsip pemeriksaan">
+          <span class="aside-index">01 / 03</span>
+          <p>Temuan membantu membuka konteks. Bukti dan sumber tetap perlu kamu nilai sendiri.</p>
+          <span class="aside-line" aria-hidden="true"></span>
+        </div>
+      </section>
+
+      <section class="analysis-section" aria-labelledby="link-heading">
+        <div class="analysis-heading">
+          <span class="section-number">01</span>
+          <div>
+            <h2 id="link-heading">Mulai dari tautan video</h2>
+            <p>Gunakan tautan video TikTok yang bisa diakses publik.</p>
+          </div>
+        </div>
+
+        <form id="analysisForm" class="link-form" novalidate>
+          <label class="visually-hidden" for="videoUrl">Tautan video TikTok</label>
+          <span class="link-icon" aria-hidden="true">↗</span>
+          <input id="videoUrl" name="url" type="url" inputmode="url" autocomplete="url" placeholder="Tempel tautan TikTok di sini" aria-describedby="formHint formError" required />
+          <button id="analyzeButton" class="submit-button" type="submit">
+            <span class="button-label">Periksa video</span><span class="button-arrow" aria-hidden="true">→</span>
+          </button>
+        </form>
+        <div class="form-meta">
+          <p id="formHint">Contoh: <span>https://www.tiktok.com/@akun/video/…</span></p>
+          <p id="formError" class="form-error" role="alert" hidden></p>
+        </div>
+        <p class="provider-note">VerifTok tidak menyimpan riwayat. Tautan diproses oleh layanan analisis yang terhubung.</p>
+
+        <div id="analysisState" class="analysis-state" aria-live="polite" aria-atomic="true" hidden></div>
+      </section>
+
+      <section class="signals-section" aria-labelledby="signals-heading">
+        <div class="signals-title">
+          <span class="section-number">02</span>
+          <div>
+            <h2 id="signals-heading">Apa yang ditelaah</h2>
+            <p>Beberapa sinyal, bukan satu vonis.</p>
+          </div>
+        </div>
+        <div class="signal-list">
+          <article class="signal-row">
+            <span class="signal-glyph glyph-comments" aria-hidden="true">“</span>
+            <div class="signal-name"><h3>Nada percakapan</h3><p>Sentimen dan indikasi ujaran kebencian</p></div>
+            <span class="signal-arrow" aria-hidden="true">↗</span>
+          </article>
+          <article class="signal-row">
+            <span class="signal-glyph glyph-context" aria-hidden="true"><span></span></span>
+            <div class="signal-name"><h3>Unsur provokasi</h3><p>Pilihan kata dan cara pesan dibingkai</p></div>
+            <span class="signal-arrow" aria-hidden="true">↗</span>
+          </article>
+          <article class="signal-row">
+            <span class="signal-glyph glyph-claims" aria-hidden="true">✓</span>
+            <div class="signal-name"><h3>Klaim dan sumber</h3><p>Bukti yang menguatkan atau menyanggah</p></div>
+            <span class="signal-arrow" aria-hidden="true">↗</span>
+          </article>
+        </div>
+      </section>
+
+      <section id="report" class="report" aria-labelledby="reportHeading" hidden>
+        <div class="report-topline">
+          <div><span class="section-number">03</span><span class="report-kicker">HASIL PEMERIKSAAN</span></div>
+          <button id="newAnalysisButton" class="text-button" type="button">Periksa tautan lain <span aria-hidden="true">↗</span></button>
+        </div>
+        <div class="report-header">
+          <div>
+            <p class="report-url-label">VIDEO YANG DIPERIKSA</p>
+            <a id="reportVideoLink" class="report-video-link" href="#" target="_blank" rel="noopener noreferrer"></a>
+          </div>
+          <span id="reportStatus" class="report-status"></span>
+        </div>
+        <div id="reportCoverage" class="coverage-note" hidden></div>
+        <div class="report-grid">
+          <article class="report-panel" id="commentsPanel">
+            <div class="panel-heading"><span class="panel-index">A</span><h3>Nada komentar</h3></div>
+            <div id="commentsContent"></div>
+          </article>
+          <article class="report-panel" id="provocationPanel">
+            <div class="panel-heading"><span class="panel-index">B</span><h3>Unsur provokasi</h3></div>
+            <div id="provocationContent"></div>
+          </article>
+          <article class="report-panel claims-panel" id="claimsPanel">
+            <div class="panel-heading"><span class="panel-index">C</span><h3>Klaim dan bukti</h3></div>
+            <div id="claimsContent"></div>
+          </article>
+        </div>
+        <p class="report-footnote">Analisis otomatis dapat keliru. Buka sumber dan pertimbangkan konteks sebelum mengambil kesimpulan.</p>
+      </section>
+    </main>
+
+    <footer class="footer">
+      <a class="footer-brand" href="/">veriftok<span>®</span></a>
+      <p>Berhenti sejenak juga bagian dari literasi.</p>
+      <span class="footer-year">Baca. Periksa. Putuskan.</span>
+    </footer>
+
+    <script src="/app.js" defer></script>
+  </body>
+</html>
