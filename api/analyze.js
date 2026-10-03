@@ -23,7 +23,8 @@ try {
   // Ignore env read issues
 }
 
-const TEMP_DIR = path.join(process.cwd(), '.tmp_videos');
+const os = require('os');
+const TEMP_DIR = path.join(os.tmpdir(), 'veriftok_videos');
 
 function json(res, status, payload) {
   res.setHeader('Content-Type', 'application/json; charset=utf-8');
