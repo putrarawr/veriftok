@@ -4,7 +4,7 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
     <meta name="theme-color" content="#0d1411" />
-    <meta name="description" content="Periksa konteks video TikTok, tingkat provokasi, deteksi hoax, dan ringkasan komentar relevan sebelum membagikan." />
+    <meta name="description" content="Periksa konteks video TikTok, tingkat provokasi, deteksi hoax, audio forensik, dan ringkasan berita resmi." />
     <link rel="manifest" href="/manifest.webmanifest" />
     <link rel="icon" href="/icons/veriftok.svg" type="image/svg+xml" />
     <link rel="apple-touch-icon" href="/icons/veriftok-192.png" />
@@ -12,7 +12,7 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=DM+Mono:ital,wght@0,400;0,500;1,400&family=Inter:wght@400;500;600;700&family=Manrope:wght@500;600;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="/styles.css" />
-    <title>VerifTok — Analisis Video, Provokasi & Komentar TikTok</title>
+    <title>VerifTok — Forensik Video, Deteksi Hoax & Cek Fakta TikTok</title>
   </head>
   <body>
     <header class="topbar">
@@ -21,6 +21,10 @@
         <span>verif<span class="brand-strong">tok</span></span>
       </a>
       <div class="topbar-right">
+        <button id="topbarGlossaryBtn" class="topbar-glossary-btn" type="button" aria-label="Buka Kamus Istilah Forensik">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+          <span>Kamus Istilah</span>
+        </button>
         <span class="privacy-note"><span class="privacy-dot"></span> Privat · Riwayat Tidak Disimpan</span>
         <button class="install-button" id="installButton" type="button" hidden>Pasang Aplikasi</button>
       </div>
@@ -31,11 +35,11 @@
         <div class="intro-copy">
           <p class="overline"><span class="overline-rule"></span> JEDA SEBENTAR · PERIKSA KONTEKS</p>
           <h1 id="page-title">Sebelum percaya,<br /><em>analisis lebih dekat.</em></h1>
-          <p class="intro-description">Tempel tautan TikTok untuk memutar video, menelaah seluruh caption, mengukur tingkat provokasi/hoax, serta merangkum komentar yang relevan.</p>
+          <p class="intro-description">Tempel tautan TikTok atau unggah berkas untuk menelaah isi video/foto slide, mengidentifikasi sound TikTok, menyaring teks stiker layar, mengukur provokasi, serta mencocokkan tema dengan berita resmi.</p>
         </div>
         <div class="intro-aside" aria-label="Prinsip pemeriksaan">
           <span class="aside-index">01 / 03</span>
-          <p>Sistem otomatis membantu menyaring konteks & fakta. Keputusan akhir dan penilaian tetap di tanganmu.</p>
+          <p>Sistem forensik cerdas membedakan tema substantif dari judul clickbait. Keputusan akhir tetap di tanganmu.</p>
           <span class="aside-line" aria-hidden="true"></span>
         </div>
       </section>
@@ -44,25 +48,67 @@
         <div class="analysis-heading">
           <span class="section-number">01</span>
           <div>
-            <h2 id="link-heading">Mulai dari tautan video TikTok</h2>
-            <p>Mendukung tautan umum (tiktok.com/@user/video/...) maupun tautan pendek (vt.tiktok.com / vm.tiktok.com)</p>
+            <h2 id="link-heading">Pilih Metode Input Pemeriksaan</h2>
+            <p>Mendukung tautan TikTok (video & foto geser) atau unggah berkas langsung (tangkapan layar / video).</p>
           </div>
         </div>
 
-        <form id="analysisForm" class="link-form" onsubmit="return false;" novalidate>
-          <label class="visually-hidden" for="videoUrl">Tautan video TikTok</label>
-          <span class="link-icon" aria-hidden="true">↗</span>
-          <input id="videoUrl" name="url" type="url" inputmode="url" autocomplete="url" placeholder="Tempel tautan video TikTok di sini..." aria-describedby="formHint formError" required />
-          <button id="analyzeButton" class="submit-button" type="button">
-            <span class="button-label">Periksa Video</span><span class="button-arrow" aria-hidden="true">→</span>
+        <!-- Input Mode Switcher with Clean Spacing -->
+        <div class="input-mode-tabs" role="tablist">
+          <button id="tabModeUrl" class="input-tab-btn active" type="button" role="tab" aria-selected="true">
+            <svg class="tab-svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg>
+            <span>Tautan TikTok (Video / Foto)</span>
           </button>
-        </form>
-        <div class="form-meta">
-          <p id="formHint">Contoh: <span>https://www.tiktok.com/@akun/video/…</span> atau <span>https://vt.tiktok.com/…</span></p>
-          <p id="formError" class="form-error" role="alert" hidden></p>
+          <button id="tabModeFile" class="input-tab-btn" type="button" role="tab" aria-selected="false">
+            <svg class="tab-svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+            <span>Unggah Berkas Langsung</span>
+          </button>
         </div>
-        <p class="provider-note">VerifTok memproses analisis secara aman tanpa menyimpan riwayat pencarianmu.</p>
 
+        <!-- Mode 1: URL Form -->
+        <div id="urlInputContainer" class="input-container-block">
+          <form id="analysisForm" class="link-form" onsubmit="return false;" novalidate>
+            <label class="visually-hidden" for="videoUrl">Tautan video atau foto TikTok</label>
+            <span class="link-icon" aria-hidden="true">↗</span>
+            <input id="videoUrl" name="url" type="url" inputmode="url" autocomplete="url" placeholder="Tempel tautan TikTok (tiktok.com/@akun/video/... atau vt.tiktok.com/...)..." aria-describedby="formHint formError" required />
+            <button id="analyzeButton" class="submit-button" type="button">
+              <span class="button-label">Periksa Video</span><span class="button-arrow" aria-hidden="true">→</span>
+            </button>
+          </form>
+          <div class="form-meta">
+            <p id="formHint">Mendukung: <span>https://vt.tiktok.com/...</span>, <span>https://vm.tiktok.com/...</span>, atau tautan carousel foto.</p>
+            <p id="formError" class="form-error" role="alert" hidden></p>
+          </div>
+        </div>
+
+        <!-- Mode 2: Direct File Upload -->
+        <div id="fileInputContainer" class="input-container-block" hidden>
+          <div class="file-dropzone" id="fileDropzone">
+            <input type="file" id="mediaFileInput" accept="video/mp4,video/webm,image/png,image/jpeg,image/webp" hidden />
+            <div id="dropzonePrompt" class="dropzone-prompt">
+              <svg class="dropzone-svg" width="34" height="34" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+              <p class="dropzone-main">Seret & lepas berkas ke sini, atau klik tombol di bawah</p>
+              <p class="dropzone-sub">Mendukung tangkapan layar (PNG, JPG) atau video TikTok (MP4, WebM maks. 45MB)</p>
+              <button type="button" id="browseFileBtn" class="browse-file-btn">Pilih Berkas</button>
+            </div>
+            <div id="dropzoneSelected" class="dropzone-selected" hidden>
+              <span class="file-selected-badge" id="fileSelectedBadge">Berkas Terpilih</span>
+              <div class="file-info-group">
+                <strong id="fileSelectedName">nama_berkas.mp4</strong>
+                <span id="fileSelectedSize">0 MB</span>
+              </div>
+              <button type="button" id="changeFileBtn" class="change-file-btn">Ganti Berkas</button>
+            </div>
+          </div>
+          <button id="analyzeFileButton" class="submit-button submit-button-file" type="button" disabled>
+            <span class="button-label">Periksa Berkas</span><span class="button-arrow" aria-hidden="true">→</span>
+          </button>
+          <div class="form-meta">
+            <p id="fileError" class="form-error" role="alert" hidden></p>
+          </div>
+        </div>
+
+        <p class="provider-note">VerifTok memproses analisis secara privat tanpa menyimpan riwayat pemeriksaanmu.</p>
         <div id="analysisState" class="analysis-state" aria-live="polite" aria-atomic="true" hidden></div>
       </section>
 
@@ -70,61 +116,69 @@
         <div class="signals-title">
           <span class="section-number">02</span>
           <div>
-            <h2 id="signals-heading">Metode Penelaahan</h2>
-            <p>Tujuh sudut pandang untuk literasi digital yang lebih jernih.</p>
+            <h2 id="signals-heading">8 Pilar Forensik VerifTok</h2>
+            <p>Penelaahan komprehensif dari audio, visual, profil, hingga pencocokan tema berita.</p>
           </div>
         </div>
         <div class="signal-list">
           <article class="signal-row signal-row-featured">
-            <span class="signal-glyph glyph-deep" aria-hidden="true">&#9673;</span>
-            <div class="signal-name"><h3>Pemahaman Konteks Video Mendalam</h3><p>AI menonton video dari awal sampai habis lalu menyimpulkan isi, konteks, dan narasi sebenarnya</p></div>
+            <span class="signal-glyph glyph-deep" aria-hidden="true"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="3" fill="currentColor"/></svg></span>
+            <div class="signal-name"><h3>Tema Substantif vs Clickbait</h3><p>Ekstraksi intisari isu nyata dan pencocokan otomatis ke berita resmi</p></div>
             <span class="signal-arrow" aria-hidden="true">↗</span>
           </article>
           <article class="signal-row">
-            <span class="signal-glyph glyph-video" aria-hidden="true">▶</span>
-            <div class="signal-name"><h3>Pemutar Video & Caption</h3><p>Pratinjau langsung dan teks caption lengkap</p></div>
+            <span class="signal-glyph" aria-hidden="true"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 18V5l12-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/></svg></span>
+            <div class="signal-name"><h3>Forensik Sound & Audio Tracking</h3><p>Deteksi Original Sound vs Trending Sound dan indikasi manipulasi audio swap</p></div>
             <span class="signal-arrow" aria-hidden="true">↗</span>
           </article>
           <article class="signal-row">
-            <span class="signal-glyph glyph-comments" aria-hidden="true">“</span>
-            <div class="signal-name"><h3>Komentar Relevan</h3><p>Menyaring spam dan merangkum tanggapan kontekstual</p></div>
+            <span class="signal-glyph" aria-hidden="true"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="4 7 4 4 20 4 20 7"/><line x1="9" y1="20" x2="15" y2="20"/><line x1="12" y1="4" x2="12" y2="20"/></svg></span>
+            <div class="signal-name"><h3>OCR Teks Stiker Mengambang</h3><p>Membaca tulisan CapCut dan overlay stiker yang sering memuat klaim hoax</p></div>
             <span class="signal-arrow" aria-hidden="true">↗</span>
           </article>
           <article class="signal-row">
-            <span class="signal-glyph glyph-context" aria-hidden="true">&#9888;</span>
-            <div class="signal-name"><h3>Unsur Provokasi</h3><p>Tingkat urgensi, emosi, dan pembingkaian narasi</p></div>
+            <span class="signal-glyph" aria-hidden="true"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg></span>
+            <div class="signal-name"><h3>Pencarian Asal Rekaman (Keyframe)</h3><p>Akses langsung Google Lens & Yandex untuk melacak rekaman lama</p></div>
             <span class="signal-arrow" aria-hidden="true">↗</span>
           </article>
           <article class="signal-row">
-            <span class="signal-glyph glyph-claims" aria-hidden="true">✓</span>
-            <div class="signal-name"><h3>Verifikasi Klaim & Hoax</h3><p>Pemeriksaan fakta dengan rujukan sumber tepercaya</p></div>
+            <span class="signal-glyph" aria-hidden="true"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg></span>
+            <div class="signal-name"><h3>Forensik Akun Pengunggah</h3><p>Identifikasi akun resmi terverifikasi vs akun agregator anonim</p></div>
             <span class="signal-arrow" aria-hidden="true">↗</span>
           </article>
           <article class="signal-row">
-            <span class="signal-glyph glyph-ai" aria-hidden="true">&#9678;</span>
-            <div class="signal-name"><h3>Deteksi AI dan Deepfake</h3><p>Identifikasi konten buatan AI, suara sintetis, dan manipulasi visual</p></div>
+            <span class="signal-glyph" aria-hidden="true"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg></span>
+            <div class="signal-name"><h3>Dukungan Foto Geser (Carousel)</h3><p>Analisis foto slide TikTok dengan pratinjau galeri interaktif</p></div>
             <span class="signal-arrow" aria-hidden="true">↗</span>
           </article>
           <article class="signal-row">
-            <span class="signal-glyph glyph-news" aria-hidden="true">&#9776;</span>
-            <div class="signal-name"><h3>Riset Berita dan Cek Fakta</h3><p>Pencarian otomatis ke media resmi yang sesuai topik video</p></div>
+            <span class="signal-glyph" aria-hidden="true"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="4" y1="9" x2="20" y2="9"/><line x1="4" y1="15" x2="20" y2="15"/><line x1="10" y1="3" x2="8" y2="21"/><line x1="16" y1="3" x2="14" y2="21"/></svg></span>
+            <div class="signal-name"><h3>Deteksi Bot & Copypasta Komentar</h3><p>Mendeteksi koordinasi astroturfing dan sentimen skeptis warganet</p></div>
+            <span class="signal-arrow" aria-hidden="true">↗</span>
+          </article>
+          <article class="signal-row">
+            <span class="signal-glyph" aria-hidden="true"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg></span>
+            <div class="signal-name"><h3>Kartu Fakta Berstempel</h3><p>Unduh kartu infografis berstempel siap dibagikan ke WhatsApp</p></div>
             <span class="signal-arrow" aria-hidden="true">↗</span>
           </article>
         </div>
       </section>
 
+      <!-- REPORT CONTAINER -->
       <section id="report" class="report" aria-labelledby="reportHeading" hidden>
         <div class="report-topline">
-          <div><span class="section-number">03</span><span class="report-kicker">HASIL ANALISIS VERIFTOK</span></div>
+          <div><span class="section-number">03</span><span class="report-kicker">HASIL PEMERIKSAAN VERIFTOK</span></div>
           <div class="report-actions">
+            <button id="reportGlossaryBtn" class="action-btn-glossary" type="button">Kamus Istilah Awam</button>
             <button id="copyReportButton" class="action-btn-copy" type="button">Salin Ringkasan</button>
             <button id="shareWaButton" class="action-btn-wa" type="button">Bagikan ke WA</button>
             <button id="newAnalysisButton" class="text-button" type="button">Periksa Tautan Lain <span aria-hidden="true">↗</span></button>
           </div>
         </div>
+
         <div class="report-header">
           <div>
-            <p class="report-url-label">VIDEO YANG DIPERIKSA</p>
+            <p class="report-url-label">KONTEN YANG DIPERIKSA</p>
             <a id="reportVideoLink" class="report-video-link" href="#" target="_blank" rel="noopener noreferrer"></a>
           </div>
           <span id="reportStatus" class="report-status"></span>
@@ -132,72 +186,316 @@
         <span id="reportTimestamp" class="report-timestamp" hidden></span>
         <div id="reportCoverage" class="coverage-note" hidden></div>
 
-        <!-- Banner Skor Kredibilitas Narasi & Anti-Hoax -->
-        <div id="credibilityBanner" class="credibility-banner">
-          <div class="credibility-left">
-            <div id="credibilityGauge" class="credibility-gauge">
-              <span id="credibilityScoreNum" class="score-num">0</span>
-              <span class="score-label">SKOR KREDIBILITAS</span>
+        <!-- TAB SWITCHER: RINGKASAN CEPAT VS ANALISIS MENDALAM -->
+        <nav class="report-view-nav" aria-label="Tampilan Laporan">
+          <div class="report-tabs-bar" role="tablist">
+            <button id="btnTabQuick" class="report-tab-btn active" type="button" role="tab" aria-selected="true" aria-controls="quickVerdictView">
+              <span class="tab-badge-pill">RINGKASAN</span>
+              <div class="tab-text-group">
+                <strong class="tab-title">Ringkasan Cepat</strong>
+                <span class="tab-subtitle">Mode Simpel · Valid / Hoax & Berita Resmi</span>
+              </div>
+            </button>
+            <button id="btnTabDeep" class="report-tab-btn" type="button" role="tab" aria-selected="false" aria-controls="deepForensicView">
+              <span class="tab-badge-pill">FORENSIK</span>
+              <div class="tab-text-group">
+                <strong class="tab-title">Analisis Mendalam</strong>
+                <span class="tab-subtitle">Forensik Lengkap Section A–H</span>
+              </div>
+            </button>
+          </div>
+        </nav>
+
+        <!-- ============================================== -->
+        <!-- VIEW 1: TAB RINGKASAN CEPAT (MODE SIMPEL)       -->
+        <!-- ============================================== -->
+        <div id="quickVerdictView" class="report-view-content" role="tabpanel" aria-labelledby="btnTabQuick">
+          <!-- Hero Verdict Card -->
+          <div class="quick-hero-card" id="quickHeroCard">
+            <div class="quick-hero-left">
+              <span class="quick-badge" id="quickVerdictBadge">MEMERIKSA</span>
+              <div class="quick-score-wrap">
+                <div class="quick-gauge" id="quickGauge">
+                  <span id="quickScoreNum" class="quick-score-num">0</span>
+                  <span class="quick-score-unit">/100</span>
+                </div>
+                <div class="quick-score-label-group">
+                  <strong id="quickRatingLabel">Kredibilitas Narasi</strong>
+                  <span id="quickScoreDesc">Skor konsensus fakta & analisis video</span>
+                </div>
+              </div>
+            </div>
+            <div class="quick-hero-right">
+              <p id="quickSummaryVerdict" class="quick-verdict-summary">Menyimpulkan hasil pemeriksaan video...</p>
             </div>
           </div>
-          <div class="credibility-right">
-            <div class="credibility-header">
-              <h3 id="credibilityRating">Tingkat Kredibilitas Narasi</h3>
-              <span id="credibilityBadge" class="credibility-badge" data-badge="verified">MEMERIKSA</span>
+
+          <!-- Card: Tema Sebenarnya Video (Substantive Theme) -->
+          <article class="quick-section-card quick-theme-card">
+            <div class="quick-card-header">
+              <div>
+                <h3>Tema Sebenarnya Video <button type="button" class="term-help-badge" data-term="substantive" aria-label="Apa itu tema sebenarnya?">?</button></h3>
+                <p class="quick-card-subtitle">Intisari topik yang dibahas (disaring dari judul sensasional & hashtag clickbait)</p>
+              </div>
             </div>
-            <p id="credibilityExplanation">Penilaian otomatis berdasarkan keakuratan klaim faktual, tingkat provokasi narasi, serta konsensus komentar asli warganet.</p>
+            <div class="quick-theme-body">
+              <div class="quick-theme-tag" id="quickThemeTag">Topik Video</div>
+              <p id="quickThemeExplanation" class="quick-theme-desc">Menelaah tema sebenarnya...</p>
+            </div>
+          </article>
+
+          <!-- Card: Temuan Inti Klaim vs Fakta -->
+          <article class="quick-section-card quick-claims-card">
+            <div class="quick-card-header">
+              <div>
+                <h3>Temuan Kunci Periksa Fakta</h3>
+                <p class="quick-card-subtitle">Perbandingan antara klaim narasi dengan fakta di lapangan</p>
+              </div>
+            </div>
+            <p id="quickKeyFinding" class="quick-finding-text">Hasil verifikasi klaim...</p>
+          </article>
+
+          <!-- Card: Berita Resmi Terkait (Berdasarkan Tema Sebenarnya) -->
+          <article class="quick-section-card quick-news-card">
+            <div class="quick-card-header">
+              <div>
+                <h3>Berita Resmi Terkait Tema Ini</h3>
+                <p class="quick-card-subtitle">Ditelusuri otomatis dari media berita resmi & arsip cek fakta nasional</p>
+              </div>
+            </div>
+            <div id="quickNewsList" class="quick-news-grid"></div>
+          </article>
+
+          <!-- Quick Action Buttons -->
+          <div class="quick-action-strip">
+            <button id="quickDownloadFactCardBtn" class="action-btn-fact-card" type="button">
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+              <span>Unduh Kartu Fakta (PNG)</span>
+            </button>
+            <button id="quickShareWaBtn" class="action-btn-wa" type="button">
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12.04 2C6.58 2 2.13 6.45 2.13 11.91C2.13 13.66 2.59 15.36 3.45 16.86L2.05 22L7.3 20.62C8.75 21.41 10.38 21.83 12.04 21.83C17.5 21.83 21.95 17.38 21.95 11.92C21.95 9.27 20.92 6.78 19.05 4.91C17.18 3.03 14.69 2 12.04 2M12.05 3.67C14.25 3.67 16.31 4.53 17.87 6.09C19.42 7.65 20.28 9.72 20.28 11.92C20.28 16.46 16.58 20.15 12.04 20.15C10.56 20.15 9.11 19.76 7.85 19L7.55 18.83L4.43 19.65L5.26 16.61L5.06 16.29C4.24 14.99 3.81 13.47 3.81 11.91C3.81 7.37 7.5 3.67 12.05 3.67Z"/></svg>
+              <span>Bagikan ke WA</span>
+            </button>
+            <button id="quickCopyBtn" class="action-btn-copy" type="button">
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+              <span>Salin Ringkasan</span>
+            </button>
+            <button id="quickGoToDeepBtn" class="action-btn-deep" type="button">
+              <span>Buka Forensik Lengkap ↘</span>
+            </button>
           </div>
         </div>
 
-        <!-- Panel: Pemahaman Konteks Video Mendalam -->
-        <article class="report-panel video-context-panel" id="videoContextPanel" hidden>
-          <div class="panel-heading"><span class="panel-index panel-index-featured">&#9673;</span><h3>Pemahaman Konteks Video Mendalam</h3></div>
-          <div id="videoContextContent"></div>
-        </article>
+        <!-- ============================================== -->
+        <!-- VIEW 2: TAB ANALISIS MENDALAM (FORENSIK A–H)    -->
+        <!-- ============================================== -->
+        <div id="deepForensicView" class="report-view-content" role="tabpanel" aria-labelledby="btnTabDeep" hidden>
+          <!-- Banner Skor Kredibilitas Narasi -->
+          <div id="credibilityBanner" class="credibility-banner">
+            <div class="credibility-left">
+              <div id="credibilityGauge" class="credibility-gauge">
+                <span id="credibilityScoreNum" class="score-num">0</span>
+                <span class="score-label">SKOR KREDIBILITAS</span>
+              </div>
+            </div>
+            <div class="credibility-right">
+              <div class="credibility-header">
+                <h3 id="credibilityRating">Tingkat Kredibilitas Narasi</h3>
+                <span id="credibilityBadge" class="credibility-badge" data-badge="verified">MEMERIKSA</span>
+              </div>
+              <p id="credibilityExplanation">Penilaian otomatis berdasarkan keakuratan klaim faktual, tingkat provokasi narasi, serta konsensus komentar asli warganet.</p>
+            </div>
+          </div>
 
-        <!-- Section Preview Video & Caption Lengkap -->
-        <div class="report-hero-grid">
-          <article class="report-panel media-panel" id="mediaPanel">
-            <div class="panel-heading"><span class="panel-index">A</span><h3>Pemutar Video TikTok</h3></div>
-            <div id="mediaContent"></div>
+          <!-- Section: Pemahaman Konteks Video Mendalam -->
+          <article class="report-panel video-context-panel" id="videoContextPanel">
+            <div class="panel-heading"><span class="panel-index panel-index-featured">&#9673;</span><h3>Pemahaman Konteks Video Mendalam</h3></div>
+            <div id="videoContextContent"></div>
           </article>
-          <article class="report-panel caption-panel" id="captionPanel">
-            <div class="panel-heading"><span class="panel-index">B</span><h3>Caption Lengkap Video</h3></div>
-            <div id="captionContent"></div>
+
+          <!-- Section Preview Media (Video Player atau Photo Carousel) & Caption -->
+          <div class="report-hero-grid">
+            <article class="report-panel media-panel" id="mediaPanel">
+              <div class="panel-heading"><span class="panel-index">A</span><h3 id="mediaPanelTitle">Pemutar Video & Media</h3></div>
+              <div id="mediaContent"></div>
+            </article>
+            <article class="report-panel caption-panel" id="captionPanel">
+              <div class="panel-heading"><span class="panel-index">B</span><h3>Caption Lengkap Konten</h3></div>
+              <div id="captionContent"></div>
+            </article>
+          </div>
+
+          <!-- SECTION A: Forensik Audio & "Sound Tracking" TikTok -->
+          <article class="report-panel forensic-panel" id="audioForensicsPanel">
+            <div class="panel-heading"><span class="panel-index">C</span><h3>Forensik Sound & Audio Tracking TikTok <button type="button" class="term-help-badge" data-term="sound" aria-label="Apa itu sound tracking?">?</button></h3></div>
+            <div id="audioForensicsContent"></div>
           </article>
+
+          <!-- SECTION B: OCR Teks Stiker Mengambang di Layar -->
+          <article class="report-panel forensic-panel" id="onScreenOcrPanel">
+            <div class="panel-heading"><span class="panel-index">D</span><h3>Teks Stiker Mengambang di Layar (OCR) <button type="button" class="term-help-badge" data-term="ocr" aria-label="Apa itu OCR?">?</button></h3></div>
+            <div id="onScreenOcrContent"></div>
+          </article>
+
+          <!-- SECTION C: Deteksi De-kontekstualisasi & Reverse Keyframe Search -->
+          <article class="report-panel forensic-panel" id="decontextPanel">
+            <div class="panel-heading"><span class="panel-index">E</span><h3>Deteksi De-kontekstualisasi & Lacak Asal Video <button type="button" class="term-help-badge" data-term="decontext" aria-label="Apa itu dekontekstualisasi?">?</button></h3></div>
+            <div id="decontextContent"></div>
+          </article>
+
+          <!-- SECTION D: Profil & Kredibilitas Pengunggah -->
+          <article class="report-panel forensic-panel" id="authorForensicsPanel">
+            <div class="panel-heading"><span class="panel-index">F</span><h3>Forensik Profil & Kredibilitas Pengunggah</h3></div>
+            <div id="authorForensicsContent"></div>
+          </article>
+
+          <!-- Grid: Komentar, Provokasi, AI Detection, Klaim, dan Sumber Berita -->
+          <div class="report-grid">
+            <article class="report-panel" id="commentsPanel">
+              <div class="panel-heading"><span class="panel-index">G</span><h3>Rangkuman Komentar & Deteksi Bot / Astroturfing <button type="button" class="term-help-badge" data-term="astroturfing" aria-label="Apa itu astroturfing?">?</button></h3></div>
+              <div id="commentsContent"></div>
+            </article>
+            <article class="report-panel" id="provocationPanel">
+              <div class="panel-heading"><span class="panel-index">H</span><h3>Tingkat Provokasi & Framing <button type="button" class="term-help-badge" data-term="framing" aria-label="Apa itu framing?">?</button></h3></div>
+              <div id="provocationContent"></div>
+            </article>
+            <article class="report-panel ai-full-panel" id="aiPanel">
+              <div class="panel-heading"><span class="panel-index">I</span><h3>Deteksi AI & Sintesis Suara <button type="button" class="term-help-badge" data-term="ai" aria-label="Apa itu deteksi AI?">?</button></h3></div>
+              <div id="aiContent"></div>
+            </article>
+            <article class="report-panel claims-panel" id="claimsPanel">
+              <div class="panel-heading"><span class="panel-index">J</span><h3>Verifikasi Klaim & Sumber Bukti</h3></div>
+              <div id="claimsContent"></div>
+            </article>
+            <article class="report-panel news-panel" id="newsSourcesPanel">
+              <div class="panel-heading"><span class="panel-index">K</span><h3>Riset Berita & Cek Fakta Resmi Lengkap</h3></div>
+              <div id="newsSourcesContent"></div>
+            </article>
+          </div>
         </div>
 
-        <div class="report-grid">
-          <article class="report-panel" id="commentsPanel">
-            <div class="panel-heading"><span class="panel-index">C</span><h3>Rangkuman Komentar Relevan</h3></div>
-            <div id="commentsContent"></div>
-          </article>
-          <article class="report-panel" id="provocationPanel">
-            <div class="panel-heading"><span class="panel-index">D</span><h3>Tingkat Provokasi & Framing</h3></div>
-            <div id="provocationContent"></div>
-          </article>
-          <article class="report-panel ai-full-panel" id="aiPanel">
-            <div class="panel-heading"><span class="panel-index">E</span><h3>Deteksi AI & Sintesis Suara</h3></div>
-            <div id="aiContent"></div>
-          </article>
-          <article class="report-panel claims-panel" id="claimsPanel">
-            <div class="panel-heading"><span class="panel-index">F</span><h3>Verifikasi Klaim & Sumber Bukti</h3></div>
-            <div id="claimsContent"></div>
-          </article>
-          <article class="report-panel news-panel" id="newsSourcesPanel">
-            <div class="panel-heading"><span class="panel-index">G</span><h3>Riset Berita dan Cek Fakta Resmi</h3></div>
-            <div id="newsSourcesContent"></div>
-          </article>
-        </div>
-        <p class="report-footnote">Analisis otomatis disusun berbasis data publik dan kecerdasan buatan. Pertimbangkan konteks dan sumber sebelum mengambil keputusan.</p>
+        <p class="report-footnote">Analisis otomatis disusun berbasis data publik, periksa fakta resmi, dan kecerdasan buatan. Pertimbangkan konteks sebelum mengambil keputusan.</p>
       </section>
     </main>
+
+    <!-- Hidden Canvas for Fact Card PNG Generation -->
+    <canvas id="factCardCanvas" width="1080" height="1350" style="display:none;"></canvas>
 
     <footer class="footer">
       <a class="footer-brand" href="/">veriftok<span>®</span></a>
       <p>Berhenti sejenak juga bagian dari literasi digital.</p>
       <span class="footer-year">Baca · Periksa · Putuskan</span>
     </footer>
+
+    <!-- MODAL KAMUS ISTILAH FORENSIK (BAHASA AWAM) -->
+    <div id="glossaryModal" class="glossary-modal" role="dialog" aria-modal="true" aria-labelledby="glossaryTitle" hidden>
+      <div class="glossary-backdrop" id="glossaryBackdrop"></div>
+      <div class="glossary-sheet">
+        <div class="glossary-header">
+          <div>
+            <span class="glossary-kicker">PANDUAN LITERASI DIGITAL</span>
+            <h2 id="glossaryTitle">Kamus Istilah Forensik (Bahasa Awam)</h2>
+            <p>Penjelasan praktis istilah teknis agar mudah dipahami siapa saja tanpa bahasa rumit.</p>
+          </div>
+          <button id="closeGlossaryBtn" class="glossary-close-btn" type="button" aria-label="Tutup Kamus">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+          </button>
+        </div>
+
+        <div class="glossary-list">
+          <!-- Term: Substantive Theme -->
+          <article class="glossary-card" id="term-substantive">
+            <div class="glossary-card-top">
+              <h3>Tema Substantif</h3>
+              <span class="glossary-badge">Intisari Nyata</span>
+            </div>
+            <p class="glossary-plain"><strong>Artinya:</strong> Topik dan peristiwa sesungguhnya yang sedang dibahas di dalam video, setelah membuang judul clickbait, huruf kapital berlebih, dan tagar viral.</p>
+            <div class="glossary-example">
+              <span class="glossary-example-title">Contoh Kasus:</span>
+              <p>Judul video menuliskan "GEMPAR! JAKARTA TENGGELAM", tetapi isi video substantifnya sebenarnya hanya liputan pembersihan saluran got di satu RT.</p>
+            </div>
+          </article>
+
+          <!-- Term: Sound Tracking -->
+          <article class="glossary-card" id="term-sound">
+            <div class="glossary-card-top">
+              <h3>Sound Tracking (Audio Swap)</h3>
+              <span class="glossary-badge">Suara Asli vs Tempelan</span>
+            </div>
+            <p class="glossary-plain"><strong>Artinya:</strong> Memeriksa apakah suara rekaman yang terdengar adalah audio asli di lokasi kejadian, atau trek suara orang lain yang ditempel saat mengedit.</p>
+            <div class="glossary-example">
+              <span class="glossary-example-title">Contoh Kasus:</span>
+              <p>Video suasana unjuk rasa damai ditempeli suara rekaman ledakan dan teriakan histeris dari peristiwa tawuran tahun lalu untuk menciptakan kesan darurat/chaos.</p>
+            </div>
+          </article>
+
+          <!-- Term: OCR -->
+          <article class="glossary-card" id="term-ocr">
+            <div class="glossary-card-top">
+              <h3>OCR Teks Stiker Layar</h3>
+              <span class="glossary-badge">Membaca Tulisan Editan</span>
+            </div>
+            <p class="glossary-plain"><strong>Artinya:</strong> Teknologi untuk membaca tulisan, subtitle palsu, atau stiker teks yang sengaja ditempel pengunggah di atas video (misal dari aplikasi edit CapCut).</p>
+            <div class="glossary-example">
+              <span class="glossary-example-title">Contoh Kasus:</span>
+              <p>Video resmi rapat menteri diberi stiker huruf merah besar: "Kabar Gembira! Bantuan 5 Juta Cair Sore Ini", padahal rapat tersebut tidak membahas hal itu sama sekali.</p>
+            </div>
+          </article>
+
+          <!-- Term: Decontextualization -->
+          <article class="glossary-card" id="term-decontext">
+            <div class="glossary-card-top">
+              <h3>De-kontekstualisasi (Video Daur Ulang)</h3>
+              <span class="glossary-badge">Rekaman Lama Dipakai Ulang</span>
+            </div>
+            <p class="glossary-plain"><strong>Artinya:</strong> Mengambil potongan rekaman video nyata dari masa lalu atau negara lain, lalu diunggah ulang seolah-olah baru saja terjadi di Indonesia hari ini.</p>
+            <div class="glossary-example">
+              <span class="glossary-example-title">Contoh Kasus:</span>
+              <p>Video kecelakaan kereta di India tahun 2018 diunggah dengan narasi "Kecelakaan parah di jalur selatan Jawa tadi siang".</p>
+            </div>
+          </article>
+
+          <!-- Term: Astroturfing -->
+          <article class="glossary-card" id="term-astroturfing">
+            <div class="glossary-card-top">
+              <h3>Astroturfing & Bot Komentar</h3>
+              <span class="glossary-badge">Komentar Rekayasa Buzzer</span>
+            </div>
+            <p class="glossary-plain"><strong>Artinya:</strong> Operasi membuat komentar seragam (copypasta) menggunakan ratusan akun bot/buzzer agar narasi palsu terkesan dipercaya dan diamini banyak orang.</p>
+            <div class="glossary-example">
+              <span class="glossary-example-title">Contoh Kasus:</span>
+              <p>Puluhan akun berkomentar persis: "Alhamdulillah saya sudah dapat bansosnya, klik link di bio", untuk memancing penonton mengklik tautan penipuan phishing.</p>
+            </div>
+          </article>
+
+          <!-- Term: Framing & Provokasi -->
+          <article class="glossary-card" id="term-framing">
+            <div class="glossary-card-top">
+              <h3>Framing & Tingkat Provokasi</h3>
+              <span class="glossary-badge">Penggiringan Opini</span>
+            </div>
+            <p class="glossary-plain"><strong>Artinya:</strong> Trik memotong kalimat atau menonjolkan bagian tertentu secara sengaja untuk menyudutkan pihak tertentu dan memicu kemarahan publik.</p>
+            <div class="glossary-example">
+              <span class="glossary-example-title">Contoh Kasus:</span>
+              <p>Wawancara sepanjang 10 menit dipotong menjadi klip 5 detik yang membuat pernyataan tokoh terdengar arogan atau bertentangan dengan konteks aslinya.</p>
+            </div>
+          </article>
+
+          <!-- Term: AI Synthesis -->
+          <article class="glossary-card" id="term-ai">
+            <div class="glossary-card-top">
+              <h3>Deteksi AI & Kloning Suara</h3>
+              <span class="glossary-badge">Suara / Wajah Tiruan AI</span>
+            </div>
+            <p class="glossary-plain"><strong>Artinya:</strong> Pemeriksaan apakah suara atau gerakan bibir di dalam video dibuat oleh perangkat lunak kecerdasan buatan (Deepfake / AI voice generator).</p>
+            <div class="glossary-example">
+              <span class="glossary-example-title">Contoh Kasus:</span>
+              <p>Kloning suara pembaca berita TV atau pejabat negara yang mempromosikan obat palsu atau investasi bodong.</p>
+            </div>
+          </article>
+        </div>
+      </div>
+    </div>
 
     <script src="/app.js" defer></script>
   </body>

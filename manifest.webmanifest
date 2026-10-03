@@ -1,14 +1,24 @@
 {
   "id": "/",
-  "name": "VerifTok — Tonton dengan konteks",
+  "name": "VerifTok — Forensik Video & Cek Fakta TikTok",
   "short_name": "VerifTok",
-  "description": "Periksa konteks, nada komentar, dan klaim dalam video TikTok.",
+  "description": "Periksa konteks, sound audio, stiker teks, dan klaim dalam video TikTok.",
   "lang": "id-ID",
   "start_url": "/",
   "scope": "/",
   "display": "standalone",
-  "background_color": "#f4f2ec",
-  "theme_color": "#f4f2ec",
+  "background_color": "#080d0b",
+  "theme_color": "#0d1411",
+  "share_target": {
+    "action": "/",
+    "method": "GET",
+    "enctype": "application/x-www-form-urlencoded",
+    "params": {
+      "title": "title",
+      "text": "text",
+      "url": "url"
+    }
+  },
   "icons": [
     { "src": "/icons/veriftok-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
     { "src": "/icons/veriftok-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any maskable" }
