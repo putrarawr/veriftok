@@ -98,7 +98,7 @@ function renderVideoContext(data) {
   content.replaceChildren();
 
   const ctx = data.videoContext;
-  if (!ctx || ctx.analysisMode === 'text-only' && ctx.contextDepth === 'shallow') {
+  if (!ctx) {
     panel.hidden = true;
     return;
   }
@@ -110,10 +110,10 @@ function renderVideoContext(data) {
   modeBadge.className = 'context-mode-badge';
   if (ctx.analysisMode === 'multimodal-deep') {
     modeBadge.dataset.mode = 'deep';
-    modeBadge.innerHTML = '<span class="mode-dot mode-dot-deep"></span> AI menonton video dari awal sampai habis';
+    modeBadge.innerHTML = '<span class="mode-dot mode-dot-deep"></span> AI Gemini Menonton & Menganalisis Video dari Awal sampai Habis';
   } else {
     modeBadge.dataset.mode = 'text';
-    modeBadge.innerHTML = '<span class="mode-dot mode-dot-text"></span> Analisis berbasis teks caption (video tidak ditonton)';
+    modeBadge.innerHTML = '<span class="mode-dot mode-dot-text"></span> Pemahaman Konteks & Analisis Topik Video';
   }
   content.append(modeBadge);
 
@@ -123,7 +123,7 @@ function renderVideoContext(data) {
     topicBlock.className = 'context-topic-block';
     const topicLabel = document.createElement('span');
     topicLabel.className = 'context-label';
-    topicLabel.textContent = 'TENTANG APA VIDEO INI';
+    topicLabel.textContent = 'ESENSI & TOPIK UTAMA VIDEO';
     const topicText = document.createElement('p');
     topicText.className = 'context-topic-text';
     topicText.textContent = ctx.topicSummary;
@@ -132,12 +132,12 @@ function renderVideoContext(data) {
   }
 
   // Detailed narrative
-  if (ctx.detailedNarrative && ctx.analysisMode !== 'text-only') {
+  if (ctx.detailedNarrative && ctx.detailedNarrative.trim()) {
     const narrBlock = document.createElement('div');
     narrBlock.className = 'context-section';
     const narrLabel = document.createElement('span');
     narrLabel.className = 'context-label';
-    narrLabel.textContent = 'ALUR NARASI VIDEO (AWAL SAMPAI AKHIR)';
+    narrLabel.textContent = 'ALUR NARASI & PENJELASAN KONTEKS';
     const narrText = document.createElement('p');
     narrText.className = 'context-narrative-text';
     narrText.textContent = ctx.detailedNarrative;
@@ -149,24 +149,24 @@ function renderVideoContext(data) {
   const dualGrid = document.createElement('div');
   dualGrid.className = 'context-dual-grid';
 
-  if (ctx.visualDescription && ctx.analysisMode !== 'text-only') {
+  if (ctx.visualDescription && ctx.visualDescription.trim()) {
     const visCard = document.createElement('div');
     visCard.className = 'context-detail-card';
     const visLabel = document.createElement('span');
     visLabel.className = 'context-label';
-    visLabel.textContent = 'APA YANG TERLIHAT DI VIDEO';
+    visLabel.textContent = 'ELEMEN VISUAL (APA YANG TERLIHAT)';
     const visText = document.createElement('p');
     visText.textContent = ctx.visualDescription;
     visCard.append(visLabel, visText);
     dualGrid.append(visCard);
   }
 
-  if (ctx.spokenContent && ctx.analysisMode !== 'text-only') {
+  if (ctx.spokenContent && ctx.spokenContent.trim()) {
     const spkCard = document.createElement('div');
     spkCard.className = 'context-detail-card';
     const spkLabel = document.createElement('span');
     spkLabel.className = 'context-label';
-    spkLabel.textContent = 'APA YANG DIUCAPKAN / NARASI';
+    spkLabel.textContent = 'NARASI VERBAL & UCAPAN (SUARA)';
     const spkText = document.createElement('p');
     spkText.textContent = ctx.spokenContent;
     spkCard.append(spkLabel, spkText);
@@ -176,12 +176,12 @@ function renderVideoContext(data) {
   if (dualGrid.childElementCount) content.append(dualGrid);
 
   // Audio analysis
-  if (ctx.audioAnalysis && ctx.analysisMode !== 'text-only') {
+  if (ctx.audioAnalysis && ctx.audioAnalysis.trim()) {
     const audioBlock = document.createElement('div');
     audioBlock.className = 'context-section';
     const audioLabel = document.createElement('span');
     audioLabel.className = 'context-label';
-    audioLabel.textContent = 'ANALISIS AUDIO & SUARA';
+    audioLabel.textContent = 'ANALISIS AUDIO & NADA SUARA';
     const audioText = document.createElement('p');
     audioText.textContent = ctx.audioAnalysis;
     audioBlock.append(audioLabel, audioText);
@@ -189,12 +189,12 @@ function renderVideoContext(data) {
   }
 
   // Key moments
-  if (Array.isArray(ctx.keyMoments) && ctx.keyMoments.length > 0 && ctx.analysisMode !== 'text-only') {
+  if (Array.isArray(ctx.keyMoments) && ctx.keyMoments.length > 0) {
     const momentsBlock = document.createElement('div');
     momentsBlock.className = 'context-section';
     const momLabel = document.createElement('span');
     momLabel.className = 'context-label';
-    momLabel.textContent = 'MOMEN PENTING DALAM VIDEO';
+    momLabel.textContent = 'MOMEN-MOMEN KUNCI DALAM VIDEO';
     const momList = document.createElement('ul');
     momList.className = 'context-moments-list';
     ctx.keyMoments.forEach(m => {
@@ -204,17 +204,19 @@ function renderVideoContext(data) {
         momList.append(li);
       }
     });
-    momentsBlock.append(momLabel, momList);
-    content.append(momentsBlock);
+    if (momList.childElementCount > 0) {
+      momentsBlock.append(momLabel, momList);
+      content.append(momentsBlock);
+    }
   }
 
   // Video vs Caption comparison
-  if (ctx.videoVsCaption && ctx.analysisMode !== 'text-only') {
+  if (ctx.videoVsCaption && ctx.videoVsCaption.trim()) {
     const vsBlock = document.createElement('div');
     vsBlock.className = 'context-vs-block';
     const vsLabel = document.createElement('span');
     vsLabel.className = 'context-label';
-    vsLabel.textContent = 'ISI VIDEO vs CAPTION/JUDUL — APAKAH CLICKBAIT?';
+    vsLabel.textContent = 'CONSISTENCY: ISI VIDEO vs CAPTION/JUDUL';
     const vsText = document.createElement('p');
     vsText.textContent = ctx.videoVsCaption;
     vsBlock.append(vsLabel, vsText);
@@ -222,12 +224,12 @@ function renderVideoContext(data) {
   }
 
   // Manipulation check
-  if (ctx.manipulationCheck && ctx.analysisMode !== 'text-only') {
+  if (ctx.manipulationCheck && ctx.manipulationCheck.trim()) {
     const manipBlock = document.createElement('div');
     manipBlock.className = 'context-section';
     const manipLabel = document.createElement('span');
     manipLabel.className = 'context-label';
-    manipLabel.textContent = 'CEK MANIPULASI VISUAL/AUDIO';
+    manipLabel.textContent = 'PEMERIKSAAN MANIPULASI VISUAL & AUDIO';
     const manipText = document.createElement('p');
     manipText.textContent = ctx.manipulationCheck;
     manipBlock.append(manipLabel, manipText);
