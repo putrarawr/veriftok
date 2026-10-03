@@ -412,76 +412,286 @@ function renderMediaPanel(data, normalizedUrl) {
 
     const wrapper = document.createElement('div');
     wrapper.className = 'photo-carousel-wrapper';
+    wrapper.setAttribute('role', 'region');
+    wrapper.setAttribute('aria-roledescription', 'carousel');
+    wrapper.setAttribute('aria-label', 'Galeri Foto Geser TikTok');
+    wrapper.tabIndex = 0;
 
     let currentSlide = 0;
     const slides = data.photoSlides;
+    const totalSlides = slides.length;
 
+    // Main Stage Area
     const mainSlide = document.createElement('div');
     mainSlide.className = 'photo-slide-main';
 
     const slideImg = document.createElement('img');
     slideImg.className = 'photo-slide-img';
     slideImg.src = slides[0];
-    slideImg.alt = `Slide foto TikTok 1 dari ${slides.length}`;
+    slideImg.alt = `Slide foto TikTok 1 dari ${totalSlides}`;
+    slideImg.loading = 'eager';
+    slideImg.decoding = 'async';
 
+    // Slide Counter Badge (Top Right)
     const counter = document.createElement('span');
     counter.className = 'carousel-counter-badge';
-    counter.textContent = `Slide 1 / ${slides.length}`;
+    counter.textContent = `Slide 1 / ${totalSlides}`;
+
+    // Mobile Swipe Hint (Top Left)
+    const swipeHint = document.createElement('div');
+    swipeHint.className = 'carousel-swipe-hint';
+    swipeHint.innerHTML = `
+      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+        <path d="m7 16-4-4 4-4"/><path d="m17 8 4 4-4 4"/><path d="M3 12h18"/>
+      </svg>
+      <span>Usap untuk geser</span>
+    `;
 
     mainSlide.append(slideImg, counter);
+    if (totalSlides > 1) {
+      mainSlide.append(swipeHint);
+    }
 
-    // Prev & Next Buttons
-    if (slides.length > 1) {
-      const prevBtn = document.createElement('button');
-      prevBtn.className = 'carousel-nav-btn carousel-prev-btn';
-      prevBtn.innerHTML = '‹';
-      prevBtn.title = 'Slide sebelumnya';
+    // Action Bar element references (defined below, updated in updateSlide)
+    let actionOpenBtn = null;
+    let actionDownloadBtn = null;
 
-      const nextBtn = document.createElement('button');
-      nextBtn.className = 'carousel-nav-btn carousel-next-btn';
-      nextBtn.innerHTML = '›';
-      nextBtn.title = 'Slide berikutnya';
+    // Function to update slide
+    function updateSlide(idx) {
+      if (totalSlides <= 1) return;
+      currentSlide = (idx + totalSlides) % totalSlides;
 
-      function updateSlide(idx) {
-        currentSlide = (idx + slides.length) % slides.length;
-        slideImg.src = slides[currentSlide];
-        slideImg.alt = `Slide foto TikTok ${currentSlide + 1} dari ${slides.length}`;
-        counter.textContent = `Slide ${currentSlide + 1} / ${slides.length}`;
-        
-        const allThumbs = wrapper.querySelectorAll('.carousel-thumb-btn');
-        allThumbs.forEach((th, i) => {
-          th.classList.toggle('active', i === currentSlide);
+      // Soft opacity transition
+      slideImg.style.opacity = '0.35';
+      const targetSrc = slides[currentSlide];
+
+      const tempImg = new Image();
+      tempImg.onload = () => {
+        slideImg.src = targetSrc;
+        slideImg.alt = `Slide foto TikTok ${currentSlide + 1} dari ${totalSlides}`;
+        slideImg.style.opacity = '1';
+      };
+      tempImg.onerror = () => {
+        slideImg.src = targetSrc;
+        slideImg.style.opacity = '1';
+      };
+      tempImg.src = targetSrc;
+
+      // Fallback timeout in case image cached or onload delayed
+      setTimeout(() => {
+        if (slideImg.style.opacity !== '1') {
+          slideImg.src = targetSrc;
+          slideImg.style.opacity = '1';
+        }
+      }, 150);
+
+      counter.textContent = `Slide ${currentSlide + 1} / ${totalSlides}`;
+
+      // Update thumbnails active state & auto-scroll into view
+      const allThumbs = wrapper.querySelectorAll('.carousel-thumb-btn');
+      allThumbs.forEach((th, i) => {
+        const isActive = i === currentSlide;
+        th.classList.toggle('active', isActive);
+        th.setAttribute('aria-selected', isActive ? 'true' : 'false');
+      });
+
+      if (allThumbs[currentSlide] && typeof allThumbs[currentSlide].scrollIntoView === 'function') {
+        allThumbs[currentSlide].scrollIntoView({
+          behavior: 'smooth',
+          block: 'nearest',
+          inline: 'center'
         });
       }
 
-      prevBtn.onclick = (e) => { e.preventDefault(); updateSlide(currentSlide - 1); };
-      nextBtn.onclick = (e) => { e.preventDefault(); updateSlide(currentSlide + 1); };
+      // Update dots active state
+      const allDots = wrapper.querySelectorAll('.carousel-dot');
+      allDots.forEach((dot, i) => {
+        dot.classList.toggle('active', i === currentSlide);
+      });
+
+      // Update action bar links
+      if (actionOpenBtn) {
+        actionOpenBtn.href = targetSrc;
+      }
+      if (actionDownloadBtn) {
+        actionDownloadBtn.href = targetSrc;
+        actionDownloadBtn.download = `veriftok-slide-${currentSlide + 1}.jpg`;
+      }
+    }
+
+    // Touch Swipe Gestures for Mobile Phones
+    if (totalSlides > 1) {
+      let touchStartX = 0;
+      let touchStartY = 0;
+      let touchEndX = 0;
+      let touchEndY = 0;
+      let isSwiping = false;
+
+      mainSlide.addEventListener('touchstart', (e) => {
+        if (!e.touches || e.touches.length === 0) return;
+        touchStartX = e.touches[0].clientX;
+        touchStartY = e.touches[0].clientY;
+        touchEndX = touchStartX;
+        touchEndY = touchStartY;
+        isSwiping = true;
+      }, { passive: true });
+
+      mainSlide.addEventListener('touchmove', (e) => {
+        if (!isSwiping || !e.touches || e.touches.length === 0) return;
+        touchEndX = e.touches[0].clientX;
+        touchEndY = e.touches[0].clientY;
+      }, { passive: true });
+
+      mainSlide.addEventListener('touchend', () => {
+        if (!isSwiping) return;
+        isSwiping = false;
+        const diffX = touchEndX - touchStartX;
+        const diffY = touchEndY - touchStartY;
+        // Trigger swipe if horizontal displacement is greater than 35px and predominantly horizontal
+        if (Math.abs(diffX) > 35 && Math.abs(diffX) > Math.abs(diffY)) {
+          if (diffX < 0) {
+            updateSlide(currentSlide + 1); // Swipe left -> Next
+          } else {
+            updateSlide(currentSlide - 1); // Swipe right -> Prev
+          }
+        }
+      });
+    }
+
+    // Keyboard Arrow Keys navigation
+    wrapper.addEventListener('keydown', (e) => {
+      if (e.key === 'ArrowRight') {
+        e.preventDefault();
+        updateSlide(currentSlide + 1);
+      } else if (e.key === 'ArrowLeft') {
+        e.preventDefault();
+        updateSlide(currentSlide - 1);
+      }
+    });
+
+    // Navigation Buttons (Prev / Next with clean SVG arrows)
+    if (totalSlides > 1) {
+      const prevBtn = document.createElement('button');
+      prevBtn.className = 'carousel-nav-btn carousel-prev-btn';
+      prevBtn.type = 'button';
+      prevBtn.setAttribute('aria-label', 'Slide sebelumnya');
+      prevBtn.title = 'Slide sebelumnya';
+      prevBtn.innerHTML = `
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+          <path d="m15 18-6-6 6-6"/>
+        </svg>
+      `;
+
+      const nextBtn = document.createElement('button');
+      nextBtn.className = 'carousel-nav-btn carousel-next-btn';
+      nextBtn.type = 'button';
+      nextBtn.setAttribute('aria-label', 'Slide berikutnya');
+      nextBtn.title = 'Slide berikutnya';
+      nextBtn.innerHTML = `
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+          <path d="m9 18 6-6-6-6"/>
+        </svg>
+      `;
+
+      prevBtn.onclick = (e) => { e.preventDefault(); e.stopPropagation(); updateSlide(currentSlide - 1); };
+      nextBtn.onclick = (e) => { e.preventDefault(); e.stopPropagation(); updateSlide(currentSlide + 1); };
 
       mainSlide.append(prevBtn, nextBtn);
     }
 
     wrapper.append(mainSlide);
 
-    // Thumbnails strip
-    if (slides.length > 1) {
+    // Mobile Pagination Dots Strip
+    if (totalSlides > 1 && totalSlides <= 20) {
+      const dotsWrap = document.createElement('div');
+      dotsWrap.className = 'carousel-dots-wrap';
+      dotsWrap.setAttribute('role', 'tablist');
+      dotsWrap.setAttribute('aria-label', 'Navigasi titik slide');
+
+      slides.forEach((_, idx) => {
+        const dot = document.createElement('button');
+        dot.className = `carousel-dot ${idx === 0 ? 'active' : ''}`;
+        dot.type = 'button';
+        dot.setAttribute('role', 'tab');
+        dot.setAttribute('aria-label', `Pindah ke slide ${idx + 1}`);
+        dot.onclick = (e) => {
+          e.preventDefault();
+          updateSlide(idx);
+        };
+        dotsWrap.append(dot);
+      });
+
+      wrapper.append(dotsWrap);
+    }
+
+    // Action Bar: Buka Ukuran Asli & Unduh Foto Slide
+    const actionBar = document.createElement('div');
+    actionBar.className = 'carousel-action-bar';
+
+    actionOpenBtn = document.createElement('a');
+    actionOpenBtn.className = 'carousel-action-link';
+    actionOpenBtn.href = slides[0];
+    actionOpenBtn.target = '_blank';
+    actionOpenBtn.rel = 'noopener noreferrer';
+    actionOpenBtn.title = 'Buka foto resolusi asli di tab baru';
+    actionOpenBtn.innerHTML = `
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M15 3h6v6"/><path d="M10 14 21 3"/><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/>
+      </svg>
+      <span>Buka Resolusi Asli</span>
+    `;
+
+    actionDownloadBtn = document.createElement('a');
+    actionDownloadBtn.className = 'carousel-action-link';
+    actionDownloadBtn.href = slides[0];
+    actionDownloadBtn.download = 'veriftok-slide-1.jpg';
+    actionDownloadBtn.target = '_blank';
+    actionDownloadBtn.rel = 'noopener noreferrer';
+    actionDownloadBtn.title = 'Unduh foto slide saat ini';
+    actionDownloadBtn.innerHTML = `
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/>
+      </svg>
+      <span>Unduh Slide</span>
+    `;
+
+    actionBar.append(actionOpenBtn, actionDownloadBtn);
+    wrapper.append(actionBar);
+
+    // Thumbnails Ribbon Strip
+    if (totalSlides > 1) {
       const thumbsStrip = document.createElement('div');
       thumbsStrip.className = 'carousel-thumbs-strip';
+      thumbsStrip.setAttribute('role', 'tablist');
+      thumbsStrip.setAttribute('aria-label', 'Daftar gambar mini slide');
+
       slides.forEach((url, idx) => {
         const thumbBtn = document.createElement('button');
         thumbBtn.className = `carousel-thumb-btn ${idx === 0 ? 'active' : ''}`;
         thumbBtn.type = 'button';
+        thumbBtn.setAttribute('role', 'tab');
+        thumbBtn.setAttribute('aria-selected', idx === 0 ? 'true' : 'false');
+        thumbBtn.setAttribute('aria-label', `Thumbnail slide ${idx + 1}`);
+
         const thumbImg = document.createElement('img');
         thumbImg.src = url;
         thumbImg.alt = `Thumbnail slide ${idx + 1}`;
-        thumbBtn.append(thumbImg);
-        thumbBtn.onclick = () => {
-          currentSlide = idx;
-          slideImg.src = slides[currentSlide];
-          counter.textContent = `Slide ${currentSlide + 1} / ${slides.length}`;
-          thumbsStrip.querySelectorAll('.carousel-thumb-btn').forEach((tb, i) => tb.classList.toggle('active', i === idx));
+        thumbImg.loading = 'lazy';
+        thumbImg.decoding = 'async';
+
+        const thumbIndexBadge = document.createElement('span');
+        thumbIndexBadge.className = 'carousel-thumb-index';
+        thumbIndexBadge.textContent = String(idx + 1);
+
+        thumbBtn.append(thumbImg, thumbIndexBadge);
+
+        thumbBtn.onclick = (e) => {
+          e.preventDefault();
+          updateSlide(idx);
         };
         thumbsStrip.append(thumbBtn);
       });
+
       wrapper.append(thumbsStrip);
     }
 
