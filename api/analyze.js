@@ -32,9 +32,16 @@ function json(res, status, payload) {
 }
 
 function isTikTokUrl(value) {
+  if (typeof value !== 'string') return false;
+  let str = value.trim();
+  if (!str.startsWith('http://') && !str.startsWith('https://')) {
+    str = 'https://' + str;
+  }
   try {
-    const url = new URL(value);
-    return url.protocol === 'https:' && TIKTOK_HOSTS.has(url.hostname.toLowerCase());
+    const url = new URL(str);
+    const host = url.hostname.toLowerCase();
+    return (url.protocol === 'https:' || url.protocol === 'http:') &&
+      (TIKTOK_HOSTS.has(host) || host.endsWith('.tiktok.com'));
   } catch {
     return false;
   }
@@ -1084,6 +1091,90 @@ function analyzeLocally(url, videoMeta, realComments = []) {
   };
 }
 
+// Fallback report for deleted, private, or truncated TikTok URLs
+function fallbackReportForInaccessibleVideo(url, resolvedUrl) {
+  const videoId = extractVideoId(url) || extractVideoId(resolvedUrl || '') || null;
+  const isShortLink = url.includes('vt.tiktok.com') || url.includes('vm.tiktok.com');
+  const shortCode = url.split('/').filter(Boolean).pop() || '';
+  const isLikelyTruncated = isShortLink && shortCode.length < 7;
+
+  const reasonTitle = isLikelyTruncated
+    ? 'Tautan TikTok Terpotong (Tidak Lengkap)'
+    : 'Video TikTok Tidak Ditemukan atau Telah Dihapus';
+
+  const reasonExplanation = isLikelyTruncated
+    ? 'Tautan yang Anda salin terputus di tengah jalan sehingga server TikTok tidak dapat menemukan video yang dimaksud. Kode tautan pendek TikTok biasanya terdiri dari 9 karakter (contoh: vt.tiktok.com/ZSY2v6R1e/).'
+    : 'Server TikTok mengembalikan status 404 (Not Found). Video ini mungkin telah dihapus oleh pengunggahnya, diubah statusnya menjadi privat, atau dibatasi oleh TikTok.';
+
+  return {
+    status: 'partial',
+    credibility: {
+      score: 0,
+      rating: isLikelyTruncated ? 'Tautan Terpotong / Tidak Lengkap' : 'Video Tidak Ditemukan / Dihapus',
+      badge: 'warning',
+      explanation: reasonExplanation
+    },
+    videoContext: {
+      topicSummary: `${reasonTitle}. ${reasonExplanation}`,
+      detailedNarrative: `Pemeriksaan otomatis menghentikan proses pengunduhan media karena data video tidak dapat ditarik dari TikTok. Silakan periksa kembali tautan asli di aplikasi TikTok.`,
+      visualDescription: 'Deskripsi visual tidak tersedia karena file video tidak dapat ditarik.',
+      spokenContent: 'Narasi verbal tidak dapat ditarik karena file video tidak dapat diputar.',
+      audioAnalysis: 'Analisis audio tidak tersedia.',
+      keyMoments: [
+        'Buka kembali aplikasi TikTok di HP Anda',
+        'Cari video yang ingin diperiksa',
+        'Tekan tombol Bagikan (Share) -> Salin Tautan (Copy Link)',
+        'Tempelkan tautan penuh tersebut ke VerifTok'
+      ],
+      videoVsCaption: 'Tidak dapat dibandingkan karena video tidak ditemukan.',
+      contentCategory: 'unknown',
+      contextDepth: 'shallow',
+      manipulationCheck: 'Pemeriksaan tidak dapat dilakukan.',
+      analysisMode: 'deleted-or-invalid'
+    },
+    video: {
+      title: reasonTitle,
+      fullCaption: `Tautan: ${url}`,
+      videoId: videoId,
+      embedHtml: null,
+      thumbnailUrl: null,
+      authorName: 'Pengunggah TikTok',
+      authorUsername: 'unknown'
+    },
+    comments: {
+      positive: '0%',
+      negative: '0%',
+      hate: '0%',
+      sampleSize: 0,
+      filteredOutCount: 0,
+      summary: 'Komentar publik tidak tersedia untuk video yang tidak ditemukan atau diprivatkan.',
+      sampleComments: [],
+      confidence: 'low'
+    },
+    provocation: {
+      level: 'low',
+      explanation: 'Tingkat provokasi tidak dapat diukur karena konten tidak dapat diakses.',
+      signals: ['Tautan terputus atau video tidak publik'],
+      confidence: 'low'
+    },
+    claims: [
+      {
+        claim: 'Status Aksesibilitas Tautan Video',
+        verdict: 'unverified',
+        explanation: reasonExplanation,
+        confidence: 'low',
+        sources: []
+      }
+    ],
+    newsVerificationSources: generateNewsVerificationSources('', [], null),
+    analyzedAt: new Date().toISOString(),
+    limitations: [
+      reasonExplanation,
+      'Saran: Pastikan menyalin tautan secara lengkap melalui fitur Bagikan -> Salin Tautan pada aplikasi TikTok.'
+    ]
+  };
+}
+
 // Cleanup temp video file
 function cleanupVideo(filePath) {
   try {
@@ -1101,7 +1192,11 @@ module.exports = async function analyze(req, res) {
     return json(res, 405, { code: 'METHOD_NOT_ALLOWED', message: 'Gunakan metode POST.' });
   }
 
-  const rawUrl = typeof req.body?.url === 'string' ? req.body.url.trim() : '';
+  let rawUrl = typeof req.body?.url === 'string' ? req.body.url.trim() : '';
+  if (rawUrl && !rawUrl.startsWith('http://') && !rawUrl.startsWith('https://')) {
+    rawUrl = 'https://' + rawUrl;
+  }
+
   if (!isTikTokUrl(rawUrl)) {
     return json(res, 422, { code: 'INVALID_TIKTOK_URL', message: 'Masukkan tautan HTTPS dari tiktok.com, vm.tiktok.com, atau vt.tiktok.com.' });
   }
@@ -1227,7 +1322,14 @@ module.exports = async function analyze(req, res) {
     }
   }
 
-  // Priority 3: Text-only Gemini analysis (when video download failed but API key exists)
+  // Priority 3: Fallback for Inaccessible, Truncated, or Deleted Video
+  if (!videoMeta && (!videoDownload || !videoDownload.filePath) && realComments.length === 0) {
+    console.log('[VideoAnalysis] Video metadata and download failed (video deleted, private, or URL truncated)');
+    const fallbackReport = fallbackReportForInaccessibleVideo(rawUrl, resolvedUrl);
+    return json(res, 200, fallbackReport);
+  }
+
+  // Priority 4: Text-only Gemini analysis (when video download failed but API key & metadata exist)
   if (geminiApiKey) {
     try {
       const report = await analyzeWithGemini(resolvedUrl, videoMeta, realComments, geminiApiKey);
@@ -1261,7 +1363,14 @@ module.exports = async function analyze(req, res) {
     }
   }
 
-  // Priority 4: Built-in Smart Analyzer (no API key)
+  // Priority 4: Inaccessible or Deleted Video Fallback
+  if (!videoMeta && (!videoDownload || !videoDownload.filePath) && realComments.length === 0) {
+    console.log('[VideoAnalysis] Video metadata and download failed (video deleted, private, or URL truncated)');
+    const fallbackReport = fallbackReportForInaccessibleVideo(rawUrl, resolvedUrl);
+    return json(res, 200, fallbackReport);
+  }
+
+  // Priority 5: Built-in Smart Analyzer (no API key or fallback metadata)
   const localReport = analyzeLocally(resolvedUrl, videoMeta, realComments);
   return json(res, 200, localReport);
 };
