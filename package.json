@@ -1,0 +1,20 @@
+{
+  "name": "veriftok",
+  "version": "1.0.0",
+  "description": "Installable PWA untuk menganalisis video TikTok, tingkat provokasi/hoax, dan merangkum nada komentar.",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "dev": "node server.js"
+  },
+  "keywords": [
+    "tiktok",
+    "fact-check",
+    "hoax",
+    "provokasi",
+    "veriftok",
+    "pwa"
+  ],
+  "author": "VerifTok Team",
+  "license": "MIT"
+}

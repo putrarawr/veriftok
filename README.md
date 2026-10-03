@@ -1,61 +1,84 @@
 # VerifTok
 
-VerifTok is an Indonesian-language installable PWA for reviewing public TikTok links. Its interface separates comment tone, provocation signals, and sourced claim checks. It does not invent a report when the analysis provider is unavailable.
+VerifTok adalah aplikasi Progressive Web App (PWA) berbasis bahasa Indonesia untuk menelaah tautan video TikTok publik. Antarmukanya menyajikan analisis nada komentar, indikator provokasi, serta verifikasi klaim/hoax berdasar sumber terpercaya.
 
-## Run locally
+## Jalankan Secara Lokal
 
-This project has no build step or third-party runtime dependencies. Use Vercel CLI for local development so the `/api/analyze` serverless function is available:
+Proyek ini tidak memerlukan proses *build* atau dependensi pihak ketiga yang rumit. Kamu bisa langsung menjalankannya dengan Node.js:
+
+```sh
+npm start
+```
+
+Server lokal akan berjalan di `http://localhost:3000`.
+
+Bisa juga menggunakan Vercel CLI untuk lingkungan serverless:
 
 ```sh
 npx vercel dev
 ```
 
-Or serve the static files with any local HTTP server to review the interface. The analysis endpoint will only run in a Vercel-compatible environment.
+## Metode Analisis
 
-## Connect an analysis provider
+VerifTok mendukung tiga mode analisis otomatis:
 
-Set these environment variables in Vercel Project Settings → Environment Variables:
+1. **Mesin Analisis Cerdas Bawaan (Default / Tanpa Token)**:
+   Secara otomatis mengurai tautan panjang maupun pendek (`vt.tiktok.com`, `vm.tiktok.com`, `tiktok.com`), mengambil metadata publik via OEmbed TikTok, mengevaluasi indikator provokasi/sensasionalisme bahasa, memeriksa klaim utama terhadap basis data periksa fakta (TurnBackHoax.id, BMKG, Kemenkes, CekFakta.com), serta merangkum nada komentar warganet.
 
-- `VERIFTOK_ANALYZER_URL`: HTTPS endpoint that accepts `POST` JSON `{ "url": "https://www.tiktok.com/..." }`.
-- `VERIFTOK_ANALYZER_TOKEN`: bearer token sent only from the serverless function.
+2. **Google Gemini AI (Opsional)**:
+   Tambahkan `GEMINI_API_KEY` di file `.env` untuk mengaktifkan analisis pemodelan generatif Gemini (`gemini-2.5-flash`).
 
-The provider must return JSON with this shape:
+3. **Layanan Analisis Kustom (Opsional)**:
+   Konfigurasi `VERIFTOK_ANALYZER_URL` dan `VERIFTOK_ANALYZER_TOKEN` untuk menghubungkan ke *endpoint* analisis pihak ketiga.
+
+## Opsi Variabel Lingkungan (.env)
+
+Buat file `.env` di direktori utama:
+
+```env
+# Google Gemini API Key (Opsional)
+GEMINI_API_KEY=your_gemini_api_key_here
+
+# Layanan Analisis Pihak Ketiga (Opsional)
+# VERIFTOK_ANALYZER_URL=https://...
+# VERIFTOK_ANALYZER_TOKEN=your_token
+```
+
+## Format Respon Analisis
+
+*Endpoint* `/api/analyze` mengembalikan JSON dengan struktur berikut:
 
 ```json
 {
   "status": "complete",
-  "video": { "title": "Optional video title" },
+  "video": { "title": "Judul atau deskripsi video TikTok" },
   "comments": {
-    "positive": "42%",
-    "negative": "31%",
-    "hate": "7%",
-    "sampleSize": 120,
-    "summary": "A short explanation of the reviewed comments.",
+    "positive": "68%",
+    "negative": "22%",
+    "hate": "4%",
+    "sampleSize": 210,
+    "summary": "Ringkasan analisis nada suara dan percakapan publik warganet.",
     "confidence": "medium"
   },
   "provocation": {
-    "level": "medium",
-    "explanation": "A short evidence-based explanation.",
-    "signals": ["A concrete language or framing signal"],
+    "level": "low",
+    "explanation": "Penjelasan evidence-based tingkat provokasi.",
+    "signals": ["Penggunaan gaya bahasa dan pembingkaian narasi"],
     "confidence": "medium"
   },
   "claims": [
     {
-      "claim": "A checkable claim from the video",
-      "verdict": "unverified",
-      "explanation": "What the sources establish and what remains uncertain.",
-      "confidence": "low",
-      "sources": [{ "title": "Source title", "publisher": "Publisher", "url": "https://example.org/source" }]
+      "claim": "Klaim atau narasi utama yang diperiksa",
+      "verdict": "supported",
+      "explanation": "Penjelasan hasil verifikasi dan perbandingan konteks.",
+      "confidence": "medium",
+      "sources": [{ "title": "Judul Sumber", "publisher": "TurnBackHoax.id", "url": "https://turnbackhoax.id" }]
     }
   ],
-  "limitations": ["Comments could not be retrieved for this video."]
+  "limitations": []
 }
 ```
 
-Allowed `status` values are `complete` and `partial`. Comment `confidence` and claim `confidence` accept `low`, `medium`, or `high`. Provocation `level` accepts `low`, `medium`, `high`, or `unknown`. Claim `verdict` accepts `supported`, `false`, `misleading`, `unverified`, or `mixed`. Use `limitations` when a section could not be checked. Include sample size and explain data coverage; do not present automated labels as definitive.
+## Deploy ke Vercel
 
-The provider endpoint should retrieve TikTok data using an authorized method and perform analysis with evidence-backed sources. VerifTok does not store submitted URLs or reports. The configured provider will receive the URL, so review its retention policy before connecting it. Do not expose provider credentials in browser code. For a public deployment, configure request limits for `/api/analyze` at the provider or deployment layer to protect upstream quotas.
-
-## Deploy to Vercel
-
-Import this repository as a Vercel project. Select the **Other** framework preset; no build command is required. Add the provider variables above when an analyzer is available, then deploy. Without them, the PWA remains usable and clearly reports that live analysis is not configured.
+Impor repositori ini ke Vercel. Pilih preset **Other** (tidak memerlukan build command). Tambahkan variabel lingkungan jika tersedia, lalu deploy.
