@@ -98,7 +98,7 @@ const server = http.createServer(async (req, res) => {
     res.setHeader('Content-Type', contentType);
     if (ext === '.html') {
       res.setHeader('Cache-Control', 'no-cache, no-store, must-revalidate');
-    } else if (['.js', '.css'].includes(ext)) {
+    } else if (['.js', '.css', '.webmanifest'].includes(ext)) {
       res.setHeader('Cache-Control', 'no-cache, must-revalidate');
     }
     fs.createReadStream(filePath).pipe(res);
