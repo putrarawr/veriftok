@@ -26,7 +26,10 @@
           <span>Kamus Istilah</span>
         </button>
         <span class="privacy-note"><span class="privacy-dot"></span> Privat · Riwayat Tidak Disimpan</span>
-        <button class="install-button" id="installButton" type="button" hidden>Pasang Aplikasi</button>
+        <button class="install-button" id="installButton" type="button" aria-label="Pasang Aplikasi di HP">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+          <span>Pasang di HP</span>
+        </button>
       </div>
     </header>
 
@@ -493,6 +496,90 @@
               <p>Kloning suara pembaca berita TV atau pejabat negara yang mempromosikan obat palsu atau investasi bodong.</p>
             </div>
           </article>
+        </div>
+      </div>
+    </div>
+
+    <!-- FLOATING MOBILE INSTALL BAR -->
+    <aside id="mobileInstallBar" class="mobile-install-bar" hidden>
+      <div class="mobile-install-info">
+        <span class="mobile-install-icon" aria-hidden="true">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+        </span>
+        <div class="mobile-install-text">
+          <strong>Pasang VerifTok di HP</strong>
+          <span>Bisa periksa langsung dari tombol Share TikTok</span>
+        </div>
+      </div>
+      <div class="mobile-install-actions">
+        <button id="mobileInstallNowBtn" class="btn-mobile-install-now" type="button">Pasang</button>
+        <button id="mobileInstallDismissBtn" class="btn-mobile-install-dismiss" type="button" aria-label="Tutup pemberitahuan">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+        </button>
+      </div>
+    </aside>
+
+    <!-- MODAL PANDUAN PASANG APLIKASI DI HP -->
+    <div id="installGuideModal" class="glossary-modal" role="dialog" aria-modal="true" aria-labelledby="installGuideTitle" hidden>
+      <div class="glossary-backdrop" id="installGuideBackdrop"></div>
+      <div class="glossary-sheet install-guide-sheet">
+        <div class="glossary-header">
+          <div>
+            <span class="glossary-kicker">INSTALASI APLIKASI WEB (PWA)</span>
+            <h2 id="installGuideTitle">Pasang VerifTok di Layar Utama HP</h2>
+            <p>Akses cepat tanpa browser dan aktifkan fitur share langsung dari aplikasi TikTok.</p>
+          </div>
+          <button id="closeInstallGuideBtn" class="glossary-close-btn" type="button" aria-label="Tutup Panduan">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+          </button>
+        </div>
+
+        <div class="install-guide-body">
+          <!-- Native prompt button if supported -->
+          <div id="nativeInstallPromptWrap" class="native-install-prompt-wrap" hidden>
+            <p>Browser Anda mendukung pemasangan instan 1-klik:</p>
+            <button id="triggerNativeInstallBtn" class="primary-install-btn" type="button">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+              <span>Pasang Sekarang</span>
+            </button>
+          </div>
+
+          <!-- Guide for Android -->
+          <article class="install-step-card" id="guideAndroid">
+            <div class="install-step-header">
+              <span class="step-num">A</span>
+              <strong>Panduan Pengguna Android (Chrome / Brave / Edge)</strong>
+            </div>
+            <ol class="install-steps-list">
+              <li>Tekan tombol menu <strong>titik tiga (⋮)</strong> di pojok kanan atas browser.</li>
+              <li>Pilih menu <strong>"Tambahkan ke Layar Utama" (Add to Home screen)</strong> atau <strong>"Instal Aplikasi"</strong>.</li>
+              <li>Konfirmasi dengan klik <strong>"Instal"</strong>. Ikon VerifTok akan langsung terpasang di layar utama HP Anda.</li>
+            </ol>
+          </article>
+
+          <!-- Guide for iOS -->
+          <article class="install-step-card" id="guideIos">
+            <div class="install-step-header">
+              <span class="step-num">B</span>
+              <strong>Panduan Pengguna iPhone / iPad (Safari)</strong>
+            </div>
+            <ol class="install-steps-list">
+              <li>Buka halaman ini di browser <strong>Safari</strong>.</li>
+              <li>Tekan tombol <strong>Bagikan / Share</strong> (ikon kotak dengan panah ke atas) di bilah navigasi bawah.</li>
+              <li>Gulir ke bawah dan pilih <strong>"Tambahkan ke Layar Utama" (Add to Home Screen)</strong>.</li>
+              <li>Tekan <strong>"Tambah"</strong> di pojok kanan atas. Selesai!</li>
+            </ol>
+          </article>
+
+          <!-- Benefit Note -->
+          <div class="install-benefit-box">
+            <strong>Keuntungan Pasang di HP:</strong>
+            <ul>
+              <li>Bisa verifikasi video langsung dari menu <em>Share</em> di aplikasi TikTok tanpa perlu copy-paste link.</li>
+              <li>Bisa dibuka instan seperti aplikasi native tanpa perlu mengetik alamat URL lagi.</li>
+              <li>Loading lebih ringan, cepat, dan hemat kuota data.</li>
+            </ul>
+          </div>
         </div>
       </div>
     </div>

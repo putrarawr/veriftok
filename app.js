@@ -1558,18 +1558,91 @@ document.querySelector('#newAnalysisButton').addEventListener('click', () => {
   window.scrollTo({ top: 0, behavior: matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth' });
 });
 
-// PWA Install Prompt
-window.addEventListener('beforeinstallprompt', (event) => {
-  event.preventDefault();
-  installPrompt = event;
-  document.querySelector('#installButton').hidden = false;
-});
-document.querySelector('#installButton').addEventListener('click', async () => {
-  if (!installPrompt) return;
-  installPrompt.prompt();
-  await installPrompt.userChoice;
-  installPrompt = null;
-  document.querySelector('#installButton').hidden = true;
+// ==========================================
+// PWA INSTALLATION & MOBILE INSTALL BANNER
+// ==========================================
+const installButton = document.querySelector('#installButton');
+const installGuideModal = document.querySelector('#installGuideModal');
+const closeInstallGuideBtn = document.querySelector('#closeInstallGuideBtn');
+const installGuideBackdrop = document.querySelector('#installGuideBackdrop');
+const mobileInstallBar = document.querySelector('#mobileInstallBar');
+const mobileInstallNowBtn = document.querySelector('#mobileInstallNowBtn');
+const mobileInstallDismissBtn = document.querySelector('#mobileInstallDismissBtn');
+const nativeInstallPromptWrap = document.querySelector('#nativeInstallPromptWrap');
+const triggerNativeInstallBtn = document.querySelector('#triggerNativeInstallBtn');
+
+const isStandalone = window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone === true;
+
+if (isStandalone) {
+  if (installButton) {
+    installButton.innerHTML = '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" aria-hidden="true"><polyline points="20 6 9 17 4 12"/></svg> <span>Aplikasi Aktif</span>';
+    installButton.disabled = true;
+  }
+} else {
+  // Capture beforeinstallprompt if fired by browser
+  window.addEventListener('beforeinstallprompt', (event) => {
+    event.preventDefault();
+    installPrompt = event;
+    if (nativeInstallPromptWrap) nativeInstallPromptWrap.hidden = false;
+  });
+
+  // Show bottom floating install bar on mobile after short delay
+  if (window.innerWidth <= 768 && !sessionStorage.getItem('veriftok_mobile_bar_dismissed')) {
+    setTimeout(() => {
+      if (mobileInstallBar) mobileInstallBar.hidden = false;
+    }, 1800);
+  }
+}
+
+async function handleInstallAction() {
+  if (installPrompt) {
+    installPrompt.prompt();
+    const choice = await installPrompt.userChoice.catch(() => null);
+    if (choice && choice.outcome === 'accepted') {
+      if (mobileInstallBar) mobileInstallBar.hidden = true;
+      if (installButton) {
+        installButton.innerHTML = '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" aria-hidden="true"><polyline points="20 6 9 17 4 12"/></svg> <span>Terpasang</span>';
+        installButton.disabled = true;
+      }
+      closeInstallGuide();
+    }
+    installPrompt = null;
+  } else {
+    // If native prompt is not active (iOS Safari / browser without prompt), show guide modal
+    openInstallGuide();
+  }
+}
+
+function openInstallGuide() {
+  if (!installGuideModal) return;
+  installGuideModal.hidden = false;
+  document.body.style.overflow = 'hidden';
+}
+
+function closeInstallGuide() {
+  if (!installGuideModal) return;
+  installGuideModal.hidden = true;
+  document.body.style.overflow = '';
+}
+
+if (installButton) installButton.addEventListener('click', handleInstallAction);
+if (mobileInstallNowBtn) mobileInstallNowBtn.addEventListener('click', handleInstallAction);
+if (triggerNativeInstallBtn) triggerNativeInstallBtn.addEventListener('click', handleInstallAction);
+
+if (mobileInstallDismissBtn) {
+  mobileInstallDismissBtn.addEventListener('click', () => {
+    if (mobileInstallBar) mobileInstallBar.hidden = true;
+    sessionStorage.setItem('veriftok_mobile_bar_dismissed', '1');
+  });
+}
+
+if (closeInstallGuideBtn) closeInstallGuideBtn.addEventListener('click', closeInstallGuide);
+if (installGuideBackdrop) installGuideBackdrop.addEventListener('click', closeInstallGuide);
+
+window.addEventListener('keydown', (e) => {
+  if (e.key === 'Escape' && installGuideModal && !installGuideModal.hidden) {
+    closeInstallGuide();
+  }
 });
 
 // Service Worker Registration
