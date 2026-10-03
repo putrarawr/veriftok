@@ -92,6 +92,176 @@ function unavailable(message) {
   return paragraph;
 }
 
+function renderVideoContext(data) {
+  const panel = document.querySelector('#videoContextPanel');
+  const content = document.querySelector('#videoContextContent');
+  content.replaceChildren();
+
+  const ctx = data.videoContext;
+  if (!ctx || ctx.analysisMode === 'text-only' && ctx.contextDepth === 'shallow') {
+    panel.hidden = true;
+    return;
+  }
+
+  panel.hidden = false;
+
+  // Analysis mode badge
+  const modeBadge = document.createElement('div');
+  modeBadge.className = 'context-mode-badge';
+  if (ctx.analysisMode === 'multimodal-deep') {
+    modeBadge.dataset.mode = 'deep';
+    modeBadge.innerHTML = '<span class="mode-dot mode-dot-deep"></span> AI menonton video dari awal sampai habis';
+  } else {
+    modeBadge.dataset.mode = 'text';
+    modeBadge.innerHTML = '<span class="mode-dot mode-dot-text"></span> Analisis berbasis teks caption (video tidak ditonton)';
+  }
+  content.append(modeBadge);
+
+  // Topic summary
+  if (ctx.topicSummary) {
+    const topicBlock = document.createElement('div');
+    topicBlock.className = 'context-topic-block';
+    const topicLabel = document.createElement('span');
+    topicLabel.className = 'context-label';
+    topicLabel.textContent = 'TENTANG APA VIDEO INI';
+    const topicText = document.createElement('p');
+    topicText.className = 'context-topic-text';
+    topicText.textContent = ctx.topicSummary;
+    topicBlock.append(topicLabel, topicText);
+    content.append(topicBlock);
+  }
+
+  // Detailed narrative
+  if (ctx.detailedNarrative && ctx.analysisMode !== 'text-only') {
+    const narrBlock = document.createElement('div');
+    narrBlock.className = 'context-section';
+    const narrLabel = document.createElement('span');
+    narrLabel.className = 'context-label';
+    narrLabel.textContent = 'ALUR NARASI VIDEO (AWAL SAMPAI AKHIR)';
+    const narrText = document.createElement('p');
+    narrText.className = 'context-narrative-text';
+    narrText.textContent = ctx.detailedNarrative;
+    narrBlock.append(narrLabel, narrText);
+    content.append(narrBlock);
+  }
+
+  // Two-column grid: visual + spoken
+  const dualGrid = document.createElement('div');
+  dualGrid.className = 'context-dual-grid';
+
+  if (ctx.visualDescription && ctx.analysisMode !== 'text-only') {
+    const visCard = document.createElement('div');
+    visCard.className = 'context-detail-card';
+    const visLabel = document.createElement('span');
+    visLabel.className = 'context-label';
+    visLabel.textContent = 'APA YANG TERLIHAT DI VIDEO';
+    const visText = document.createElement('p');
+    visText.textContent = ctx.visualDescription;
+    visCard.append(visLabel, visText);
+    dualGrid.append(visCard);
+  }
+
+  if (ctx.spokenContent && ctx.analysisMode !== 'text-only') {
+    const spkCard = document.createElement('div');
+    spkCard.className = 'context-detail-card';
+    const spkLabel = document.createElement('span');
+    spkLabel.className = 'context-label';
+    spkLabel.textContent = 'APA YANG DIUCAPKAN / NARASI';
+    const spkText = document.createElement('p');
+    spkText.textContent = ctx.spokenContent;
+    spkCard.append(spkLabel, spkText);
+    dualGrid.append(spkCard);
+  }
+
+  if (dualGrid.childElementCount) content.append(dualGrid);
+
+  // Audio analysis
+  if (ctx.audioAnalysis && ctx.analysisMode !== 'text-only') {
+    const audioBlock = document.createElement('div');
+    audioBlock.className = 'context-section';
+    const audioLabel = document.createElement('span');
+    audioLabel.className = 'context-label';
+    audioLabel.textContent = 'ANALISIS AUDIO & SUARA';
+    const audioText = document.createElement('p');
+    audioText.textContent = ctx.audioAnalysis;
+    audioBlock.append(audioLabel, audioText);
+    content.append(audioBlock);
+  }
+
+  // Key moments
+  if (Array.isArray(ctx.keyMoments) && ctx.keyMoments.length > 0 && ctx.analysisMode !== 'text-only') {
+    const momentsBlock = document.createElement('div');
+    momentsBlock.className = 'context-section';
+    const momLabel = document.createElement('span');
+    momLabel.className = 'context-label';
+    momLabel.textContent = 'MOMEN PENTING DALAM VIDEO';
+    const momList = document.createElement('ul');
+    momList.className = 'context-moments-list';
+    ctx.keyMoments.forEach(m => {
+      if (typeof m === 'string' && m.trim()) {
+        const li = document.createElement('li');
+        li.textContent = m;
+        momList.append(li);
+      }
+    });
+    momentsBlock.append(momLabel, momList);
+    content.append(momentsBlock);
+  }
+
+  // Video vs Caption comparison
+  if (ctx.videoVsCaption && ctx.analysisMode !== 'text-only') {
+    const vsBlock = document.createElement('div');
+    vsBlock.className = 'context-vs-block';
+    const vsLabel = document.createElement('span');
+    vsLabel.className = 'context-label';
+    vsLabel.textContent = 'ISI VIDEO vs CAPTION/JUDUL — APAKAH CLICKBAIT?';
+    const vsText = document.createElement('p');
+    vsText.textContent = ctx.videoVsCaption;
+    vsBlock.append(vsLabel, vsText);
+    content.append(vsBlock);
+  }
+
+  // Manipulation check
+  if (ctx.manipulationCheck && ctx.analysisMode !== 'text-only') {
+    const manipBlock = document.createElement('div');
+    manipBlock.className = 'context-section';
+    const manipLabel = document.createElement('span');
+    manipLabel.className = 'context-label';
+    manipLabel.textContent = 'CEK MANIPULASI VISUAL/AUDIO';
+    const manipText = document.createElement('p');
+    manipText.textContent = ctx.manipulationCheck;
+    manipBlock.append(manipLabel, manipText);
+    content.append(manipBlock);
+  }
+
+  // Category + depth badges
+  const metaRow = document.createElement('div');
+  metaRow.className = 'context-meta-row';
+
+  if (ctx.contentCategory) {
+    const catBadge = document.createElement('span');
+    catBadge.className = 'context-category-badge';
+    const categoryLabels = {
+      berita: 'Berita', hiburan: 'Hiburan', edukasi: 'Edukasi', opini: 'Opini',
+      promosi: 'Promosi', propaganda: 'Propaganda', satir: 'Satir', fiksi: 'Fiksi', unknown: 'Belum Diketahui'
+    };
+    catBadge.textContent = `Kategori: ${categoryLabels[ctx.contentCategory] || ctx.contentCategory}`;
+    catBadge.dataset.category = ctx.contentCategory;
+    metaRow.append(catBadge);
+  }
+
+  if (ctx.contextDepth) {
+    const depthBadge = document.createElement('span');
+    depthBadge.className = 'context-depth-badge';
+    depthBadge.dataset.depth = ctx.contextDepth;
+    const depthLabels = { deep: 'Kedalaman: Mendalam', moderate: 'Kedalaman: Sedang', shallow: 'Kedalaman: Permukaan' };
+    depthBadge.textContent = depthLabels[ctx.contextDepth] || ctx.contextDepth;
+    metaRow.append(depthBadge);
+  }
+
+  if (metaRow.childElementCount) content.append(metaRow);
+}
+
 function renderReport(data, submittedUrl) {
   const normalizedUrl = parseTikTokUrl(submittedUrl)?.href || submittedUrl;
   const videoLink = document.querySelector('#reportVideoLink');
@@ -125,11 +295,28 @@ function renderReport(data, submittedUrl) {
     credBanner.dataset.badge = cred.badge || 'verified';
     expText.textContent = cred.explanation || 'Penilaian kredibilitas narasi video.';
     credBanner.hidden = false;
+
+    // Animate the score number counting up
+    const targetScore = cred.score;
+    scoreNum.textContent = '0';
+    let current = 0;
+    const step = Math.max(1, Math.round(targetScore / 30));
+    const counter = setInterval(() => {
+      current += step;
+      if (current >= targetScore) {
+        current = targetScore;
+        clearInterval(counter);
+      }
+      scoreNum.textContent = current;
+    }, 30);
   } else {
     credBanner.hidden = true;
   }
 
-  // 1. Render SINGLE Video Cover & Player Card (Zero overload-protect triggered error)
+  // 0.5 Render Deep Video Context Understanding
+  renderVideoContext(data);
+
+  // 1. Render SINGLE Video Cover & Player Card
   const mediaContent = document.querySelector('#mediaContent');
   mediaContent.replaceChildren();
 
@@ -620,10 +807,15 @@ async function doAnalysis() {
 
   const progressSteps = [
     { delay: 1500, text: 'Mengambil metadata dan thumbnail video dari TikTok...' },
-    { delay: 3500, text: 'Mengumpulkan komentar publik dan menyaring spam...' },
-    { delay: 6000, text: 'Menganalisis narasi, provokasi, dan klaim faktual...' },
-    { delay: 9000, text: 'Memeriksa indikator AI/deepfake dan mencari sumber berita...' },
-    { delay: 13000, text: 'Menyusun laporan lengkap, hampir selesai...' },
+    { delay: 3500, text: 'Mendownload video TikTok untuk analisis mendalam...' },
+    { delay: 7000, text: 'Mengunggah video ke AI — memulai pemutaran & pemahaman isi...' },
+    { delay: 12000, text: 'AI sedang menonton video dari awal sampai habis...' },
+    { delay: 18000, text: 'AI memahami konteks visual, audio, dan narasi video...' },
+    { delay: 25000, text: 'Mengumpulkan komentar publik dan menyaring spam...' },
+    { delay: 32000, text: 'Menganalisis provokasi, klaim faktual, dan deepfake...' },
+    { delay: 40000, text: 'Memeriksa kesesuaian caption vs isi video sebenarnya...' },
+    { delay: 50000, text: 'Menyusun laporan analisis mendalam, hampir selesai...' },
+    { delay: 65000, text: 'Memfinalisasi seluruh temuan dari isi video...' },
   ];
   const progressTimers = progressSteps.map(step =>
     setTimeout(() => {
