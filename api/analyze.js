@@ -186,11 +186,19 @@ async function downloadTikTokVideo(resolvedUrl) {
     let videoMeta = null;
 
     try {
-      const res = await fetch(endpoint, {
+      const params = new URLSearchParams();
+      params.append('url', resolvedUrl);
+      params.append('hd', '1');
+
+      const res = await fetch('https://www.tikwm.com/api/', {
+        method: 'POST',
         signal: controller.signal,
         headers: {
-          'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36'
-        }
+          'Content-Type': 'application/x-www-form-urlencoded; charset=UTF-8',
+          'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36',
+          'Referer': 'https://www.tikwm.com/'
+        },
+        body: params
       });
       if (res.ok) {
         const json = await res.json();
@@ -200,6 +208,8 @@ async function downloadTikTokVideo(resolvedUrl) {
             duration: json.data.duration || 0,
             title: json.data.title || '',
             cover: json.data.cover || json.data.origin_cover || '',
+            author_name: json.data.author?.nickname || '',
+            author_unique_id: json.data.author?.unique_id || '',
           };
         }
       }
@@ -347,12 +357,13 @@ async function uploadToGeminiFiles(filePath, apiKey) {
 
 // Deep video analysis with Gemini multimodal (video + text)
 async function analyzeVideoWithGemini(fileUri, mimeType, url, videoMeta, realComments, apiKey) {
-  const candidateModels = [
+  const candidateModels = Array.from(new Set([
     process.env.GEMINI_MODEL,
-    'gemini-2.0-flash',
-    'gemini-1.5-flash',
+    'gemini-3.5-flash',
+    'gemini-3.6-flash',
+    'gemini-3.8-flash',
     'gemini-flash-latest'
-  ].filter(Boolean);
+  ])).filter(Boolean);
 
   const videoId = extractVideoId(url) || videoMeta?.embed_product_id || null;
   const fullCaptionText = videoMeta?.title || 'Deskripsi tidak dapat diambil';
@@ -667,12 +678,13 @@ const sleep = (ms) => new Promise(resolve => setTimeout(resolve, ms));
 
 // Text-only Gemini analysis (fallback when video download fails)
 async function analyzeWithGemini(url, videoMeta, realComments, apiKey) {
-  const candidateModels = [
+  const candidateModels = Array.from(new Set([
     process.env.GEMINI_MODEL,
-    'gemini-1.5-flash',
-    'gemini-2.0-flash',
+    'gemini-3.5-flash',
+    'gemini-3.6-flash',
+    'gemini-3.8-flash',
     'gemini-flash-latest'
-  ].filter(Boolean);
+  ])).filter(Boolean);
 
   const videoId = extractVideoId(url) || videoMeta?.embed_product_id || null;
   const fullCaptionText = videoMeta?.title || 'Deskripsi tidak dapat diambil';
