@@ -26,6 +26,17 @@ const changeFileBtn = document.querySelector('#changeFileBtn');
 const analyzeFileButton = document.querySelector('#analyzeFileButton');
 const fileError = document.querySelector('#fileError');
 
+// Mode chip selection
+let selectedMode = 'full';
+const modeChips = document.querySelectorAll('.mode-chip');
+modeChips.forEach(chip => {
+  chip.addEventListener('click', () => {
+    modeChips.forEach(c => c.classList.remove('active'));
+    chip.classList.add('active');
+    selectedMode = chip.dataset.mode;
+  });
+});
+
 let selectedUploadFile = null;
 
 // Report view tabs
@@ -349,6 +360,7 @@ function renderQuickVerdict(data, normalizedUrl) {
     emptyMsg.textContent = 'Berita resmi terkait tema ini sedang dalam pemutakhiran. Gunakan tautan riset cek fakta di tab Analisis Mendalam.';
     newsList.append(emptyMsg);
   }
+  renderCounterComment(data);
 
   // Wire Quick Action Buttons
   const quickCopyBtn = document.querySelector('#quickCopyBtn');
@@ -1366,6 +1378,8 @@ function renderReport(data, submittedUrl) {
   renderAiDetection(data);
   renderClaims(data);
   renderNewsSources(data);
+  renderClickbaitMeter(data);
+  renderScamDetection(data);
 
   // Top action buttons
   const copyBtn = document.querySelector('#copyReportButton');
@@ -1633,12 +1647,13 @@ async function doUrlAnalysis() {
     const response = await fetch('/api/analyze', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json', Accept: 'application/json' },
-      body: JSON.stringify({ url: validUrl }),
+      body: JSON.stringify({ url: validUrl, mode: selectedMode }),
     });
     const result = await response.json().catch(() => ({}));
 
     if (response.ok && result.status && ['complete', 'partial'].includes(result.status)) {
       renderReport(result, validUrl);
+      if (typeof loadTrendingFeed === 'function') loadTrendingFeed();
       input.value = validUrl;
       return false;
     }
@@ -1969,3 +1984,274 @@ document.addEventListener('click', (e) => {
     console.error('Incoming share handling error:', err);
   }
 })();
+// --- NEW FEATURE RENDER FUNCTIONS ---
+
+function renderCounterComment(data) {
+  const container = document.querySelector('#counterCommentContent');
+  if (!container) return;
+  container.replaceChildren();
+  
+  const cc = data.counterComment;
+  if (!cc) {
+    container.innerHTML = '<p style="color:var(--text-muted);font-size:13px;">Data template balasan tidak tersedia.</p>';
+    return;
+  }
+  
+  const templates = [
+    { label: 'Balasan Singkat', sublabel: 'Maksimal 150 karakter, cocok untuk komentar cepat', text: cc.shortReply, icon: 'chat' },
+    { label: 'Balasan Berbobot', sublabel: 'Disertai konteks dan sumber media', text: cc.detailedReply, icon: 'detail' },
+    { label: 'Balasan + Fakta', sublabel: 'Menyertakan rujukan berita resmi', text: cc.factCheckReply, icon: 'link' }
+  ];
+  
+  templates.forEach(tmpl => {
+    if (!tmpl.text) return;
+    const card = document.createElement('div');
+    card.className = 'counter-reply-card';
+    
+    const header = document.createElement('div');
+    header.className = 'counter-reply-header';
+    header.innerHTML = `<strong>${tmpl.label}</strong><span>${tmpl.sublabel}</span>`;
+    
+    const body = document.createElement('p');
+    body.className = 'counter-reply-text';
+    body.textContent = tmpl.text;
+    
+    const copyBtn = document.createElement('button');
+    copyBtn.type = 'button';
+    copyBtn.className = 'counter-copy-btn';
+    copyBtn.innerHTML = `
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/>
+      </svg>
+      <span>Salin</span>
+    `;
+    copyBtn.onclick = () => {
+      navigator.clipboard.writeText(tmpl.text).then(() => {
+        copyBtn.querySelector('span').textContent = 'Tersalin!';
+        setTimeout(() => { copyBtn.querySelector('span').textContent = 'Salin'; }, 2500);
+      });
+    };
+    
+    card.append(header, body, copyBtn);
+    container.append(card);
+  });
+}
+
+function renderClickbaitMeter(data) {
+  const container = document.querySelector('#clickbaitContent');
+  if (!container) return;
+  container.replaceChildren();
+  
+  const cb = data.clickbaitMeter;
+  if (!cb) {
+    container.innerHTML = '<p style="color:var(--text-muted);font-size:13px;">Data meter clickbait tidak tersedia.</p>';
+    return;
+  }
+  
+  // Meter bar
+  const meterWrap = document.createElement('div');
+  meterWrap.className = 'clickbait-meter-wrap';
+  
+  const levelLabels = { none: 'Tidak Clickbait', low: 'Sedikit Sensasional', medium: 'Cukup Clickbait', high: 'Sangat Clickbait', extreme: 'Clickbait Ekstrem' };
+  const levelColors = { none: 'var(--success-text)', low: '#6ee7b7', medium: 'var(--warning-text)', high: '#f97316', extreme: '#ef4444' };
+  
+  const score = cb.score || 0;
+  const level = cb.level || 'none';
+  
+  meterWrap.innerHTML = `
+    <div class="cb-meter-header">
+      <span class="cb-meter-label" style="color:${levelColors[level]}">${levelLabels[level] || level}</span>
+      <span class="cb-meter-score">${score}/100</span>
+    </div>
+    <div class="cb-meter-track">
+      <div class="cb-meter-fill" style="width:${score}%;background:${levelColors[level]}"></div>
+    </div>
+  `;
+  container.append(meterWrap);
+  
+  // Comparison: Title Claim vs Actual Content
+  if (cb.titleClaim || cb.actualContent) {
+    const vsBlock = document.createElement('div');
+    vsBlock.className = 'cb-vs-block';
+    vsBlock.innerHTML = `
+      <div class="cb-vs-side">
+        <strong>Janji di Judul/Caption</strong>
+        <p>${cb.titleClaim || '-'}</p>
+      </div>
+      <div class="cb-vs-divider">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--text-muted)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m7 16-4-4 4-4"/><path d="m17 8 4 4-4 4"/><line x1="3" y1="12" x2="21" y2="12"/></svg>
+      </div>
+      <div class="cb-vs-side">
+        <strong>Isi Sebenarnya</strong>
+        <p>${cb.actualContent || '-'}</p>
+      </div>
+    `;
+    container.append(vsBlock);
+  }
+  
+  // Explanation
+  if (cb.mismatchExplanation) {
+    const expl = document.createElement('p');
+    expl.className = 'cb-explanation';
+    expl.textContent = cb.mismatchExplanation;
+    container.append(expl);
+  }
+  
+  // Signals
+  if (cb.signals && cb.signals.length > 0) {
+    const sigList = document.createElement('div');
+    sigList.className = 'cb-signals-list';
+    cb.signals.forEach(sig => {
+      const tag = document.createElement('span');
+      tag.className = 'cb-signal-tag';
+      tag.textContent = sig;
+      sigList.append(tag);
+    });
+    container.append(sigList);
+  }
+}
+
+function renderScamDetection(data) {
+  const container = document.querySelector('#scamContent');
+  if (!container) return;
+  container.replaceChildren();
+  
+  const sc = data.scamDetection;
+  if (!sc) {
+    container.innerHTML = '<p style="color:var(--text-muted);font-size:13px;">Data deteksi penipuan tidak tersedia.</p>';
+    return;
+  }
+  
+  // Status Badge
+  const statusMap = {
+    safe: { label: 'AMAN', color: 'var(--success-text)', bg: 'var(--success-bg)', border: 'var(--success-border)', icon: 'check' },
+    suspicious: { label: 'MENCURIGAKAN', color: 'var(--warning-text)', bg: 'var(--warning-bg)', border: 'var(--warning-border)', icon: 'alert' },
+    dangerous: { label: 'BERBAHAYA', color: '#ef4444', bg: 'rgba(239,68,68,0.1)', border: 'rgba(239,68,68,0.3)', icon: 'danger' }
+  };
+  const status = statusMap[sc.riskLevel] || statusMap.safe;
+  
+  const banner = document.createElement('div');
+  banner.className = 'scam-status-banner';
+  banner.style.cssText = `background:${status.bg};border:1px solid ${status.border};border-radius:10px;padding:14px 18px;margin-bottom:14px;`;
+  banner.innerHTML = `
+    <div style="display:flex;align-items:center;gap:10px;">
+      <span style="font:700 13px var(--font-mono);color:${status.color};letter-spacing:0.5px;">${status.label}</span>
+      ${sc.type !== 'none' ? `<span style="font:500 11.5px var(--font-heading);color:var(--text-muted);border-left:1px solid var(--border-color);padding-left:10px;">${sc.type.replace(/_/g,' ').toUpperCase()}</span>` : ''}
+    </div>
+  `;
+  container.append(banner);
+  
+  // Explanation
+  if (sc.explanation) {
+    const expl = document.createElement('p');
+    expl.style.cssText = 'font-size:13px;line-height:1.6;color:var(--text-secondary);margin:0 0 12px;';
+    expl.textContent = sc.explanation;
+    container.append(expl);
+  }
+  
+  // Detected Identifiers (rekening/nomor)
+  if (sc.detectedIdentifiers && sc.detectedIdentifiers.length > 0) {
+    const idBlock = document.createElement('div');
+    idBlock.className = 'scam-identifiers-block';
+    idBlock.innerHTML = `<strong style="font:700 12px var(--font-mono);color:var(--warning-text);display:block;margin-bottom:6px;">NOMOR / IDENTITAS TERDETEKSI</strong>`;
+    sc.detectedIdentifiers.forEach(id => {
+      const tag = document.createElement('code');
+      tag.style.cssText = 'display:inline-block;padding:3px 10px;background:rgba(0,0,0,0.3);border:1px solid var(--border-light);border-radius:4px;font:500 12px var(--font-mono);color:var(--text-primary);margin:0 6px 6px 0;';
+      tag.textContent = id;
+      idBlock.append(tag);
+    });
+    container.append(idBlock);
+  }
+  
+  // Signals
+  if (sc.signals && sc.signals.length > 0) {
+    const sigWrap = document.createElement('div');
+    sigWrap.style.cssText = 'display:flex;flex-wrap:wrap;gap:6px;margin-top:10px;';
+    sc.signals.forEach(sig => {
+      const tag = document.createElement('span');
+      tag.className = 'cb-signal-tag';
+      tag.style.cssText = `border-color:${status.border};color:${status.color};`;
+      tag.textContent = sig;
+      sigWrap.append(tag);
+    });
+    container.append(sigWrap);
+  }
+}
+
+async function loadTrendingFeed() {
+  try {
+    const res = await fetch('/api/trending');
+    if (!res.ok) return;
+    const data = await res.json();
+    if (!Array.isArray(data) || data.length === 0) return;
+    
+    const feedSection = document.querySelector('#trendingFeed');
+    const feedList = document.querySelector('#trendingList');
+    const feedCount = document.querySelector('#trendingCount');
+    if (!feedSection || !feedList) return;
+    
+    feedSection.hidden = false;
+    feedCount.textContent = `${data.length} video diperiksa`;
+    feedList.replaceChildren();
+    
+    data.slice(0, 5).forEach(item => {
+      const card = document.createElement('button');
+      card.type = 'button';
+      card.className = 'trending-card';
+      
+      const verdictColors = {
+        valid: 'var(--success-text)',
+        misleading: 'var(--warning-text)',
+        mixed: 'var(--warning-text)',
+        false: '#ef4444',
+        unverified: 'var(--text-muted)'
+      };
+      const verdictColor = verdictColors[item.verdict] || 'var(--text-muted)';
+      
+      const timeAgo = getTimeAgo(item.checkedAt);
+      
+      card.innerHTML = `
+        <div class="trending-card-left">
+          ${item.thumbnailUrl ? `<img src="${item.thumbnailUrl}" alt="" class="trending-thumb" loading="lazy"/>` : '<div class="trending-thumb-placeholder"></div>'}
+        </div>
+        <div class="trending-card-body">
+          <span class="trending-badge" style="color:${verdictColor};border-color:${verdictColor}">${item.badgeLabel || 'CEK'}</span>
+          <p class="trending-theme">${item.theme || 'Topik belum teridentifikasi'}</p>
+          <span class="trending-meta">@${item.authorUsername || '?'} · ${timeAgo}</span>
+        </div>
+        <div class="trending-card-score" style="color:${verdictColor}">${item.score}</div>
+      `;
+      
+      card.onclick = () => {
+        const input = document.querySelector('#videoUrl');
+        if (input && item.url) {
+          input.value = item.url;
+          input.focus();
+        }
+      };
+      
+      feedList.append(card);
+    });
+  } catch (e) {
+    // silent fail
+  }
+}
+
+function getTimeAgo(isoDate) {
+  if (!isoDate) return '';
+  const diff = Date.now() - new Date(isoDate).getTime();
+  const mins = Math.floor(diff / 60000);
+  if (mins < 1) return 'baru saja';
+  if (mins < 60) return `${mins} menit lalu`;
+  const hours = Math.floor(mins / 60);
+  if (hours < 24) return `${hours} jam lalu`;
+  const days = Math.floor(hours / 24);
+  return `${days} hari lalu`;
+}
+
+// Call on initial load
+document.addEventListener('DOMContentLoaded', () => {
+  if (typeof loadTrendingFeed === 'function') {
+    loadTrendingFeed();
+  }
+});

@@ -78,6 +78,25 @@
               <span class="button-label">Periksa Video</span><span class="button-arrow" aria-hidden="true">→</span>
             </button>
           </form>
+          <!-- Mode Pemeriksaan Cepat -->
+          <div class="analysis-mode-chips" id="modeChipStrip">
+            <button type="button" class="mode-chip active" data-mode="full">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="m9 12 2 2 4-4"/></svg>
+              <span>Analisis Lengkap</span>
+            </button>
+            <button type="button" class="mode-chip" data-mode="hoax">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 9v4"/><path d="M12 17h.01"/><path d="M3.586 3.586A2 2 0 0 1 5 3h14a2 2 0 0 1 1.414.586l.001.001A2 2 0 0 1 21 5v14a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 .586-1.414z"/></svg>
+              <span>Cek Hoax</span>
+            </button>
+            <button type="button" class="mode-chip" data-mode="ai">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 8V4H8"/><rect width="16" height="12" x="4" y="8" rx="2"/><path d="M2 14h2"/><path d="M20 14h2"/><path d="M15 13v2"/><path d="M9 13v2"/></svg>
+              <span>Deteksi AI</span>
+            </button>
+            <button type="button" class="mode-chip" data-mode="news">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 22h16a2 2 0 0 0 2-2V4a2 2 0 0 0-2-2H8a2 2 0 0 0-2 2v16a2 2 0 0 1-2 2Zm0 0a2 2 0 0 1-2-2v-9c0-1.1.9-2 2-2h2"/><path d="M18 14h-8"/><path d="M15 18h-5"/><path d="M10 6h8v4h-8V6Z"/></svg>
+              <span>Lacak Berita</span>
+            </button>
+          </div>
           <div class="form-meta">
             <p id="formHint">Mendukung: <span>https://vt.tiktok.com/...</span>, <span>https://vm.tiktok.com/...</span>, atau tautan carousel foto.</p>
             <p id="formError" class="form-error" role="alert" hidden></p>
@@ -113,6 +132,18 @@
 
         <p class="provider-note">VerifTok memproses analisis secara privat tanpa menyimpan riwayat pemeriksaanmu.</p>
         <div id="analysisState" class="analysis-state" aria-live="polite" aria-atomic="true" hidden></div>
+
+        <!-- Trending: Isu & Hoax yang Baru Diperiksa -->
+        <div id="trendingFeed" class="trending-feed-section" hidden>
+          <div class="trending-feed-header">
+            <h3>
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--accent-emerald-light)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M8.5 14.5A2.5 2.5 0 0 0 11 12c0-1.38-.5-2-1-3-1.072-2.143-.224-4.054 2-6 .5 2.5 2 4.9 4 6.5 2 1.6 3 3.5 3 5.5a7 7 0 1 1-14 0c0-1.153.433-2.294 1-3a2.5 2.5 0 0 0 2.5 2.5z"/></svg>
+              Isu & Hoax Viral yang Baru Diperiksa
+            </h3>
+            <span class="trending-count" id="trendingCount"></span>
+          </div>
+          <div id="trendingList" class="trending-list"></div>
+        </div>
       </section>
 
       <section class="signals-section" aria-labelledby="signals-heading">
@@ -269,6 +300,17 @@
             <div id="quickNewsList" class="quick-news-grid"></div>
           </article>
 
+          <!-- Card: Template Balasan Komentar TikTok -->
+          <article class="quick-section-card quick-counter-card" id="quickCounterCard">
+            <div class="quick-card-header">
+              <div>
+                <h3>Template Balasan Komentar TikTok <button type="button" class="term-help-badge" data-term="counter" aria-label="Apa itu template balasan?">?</button></h3>
+                <p class="quick-card-subtitle">Salin balasan siap pakai untuk meluruskan klaim di kolom komentar TikTok</p>
+              </div>
+            </div>
+            <div id="counterCommentContent"></div>
+          </article>
+
           <!-- Quick Action Buttons -->
           <div class="quick-action-strip">
             <button id="quickDownloadFactCardBtn" class="action-btn-fact-card" type="button">
@@ -350,6 +392,18 @@
           <article class="report-panel forensic-panel" id="authorForensicsPanel">
             <div class="panel-heading"><span class="panel-index">F</span><h3>Forensik Profil & Kredibilitas Pengunggah</h3></div>
             <div id="authorForensicsContent"></div>
+          </article>
+
+          <!-- Section: Clickbait & Sensationalisme Meter -->
+          <article class="report-panel forensic-panel" id="clickbaitPanel">
+            <div class="panel-heading"><span class="panel-index">CB</span><h3>Meter Clickbait & Sensasionalisme <button type="button" class="term-help-badge" data-term="clickbait" aria-label="Apa itu clickbait?">?</button></h3></div>
+            <div id="clickbaitContent"></div>
+          </article>
+
+          <!-- Section: Deteksi Penipuan & Donasi Mencurigakan -->
+          <article class="report-panel forensic-panel" id="scamPanel">
+            <div class="panel-heading"><span class="panel-index">SC</span><h3>Deteksi Penipuan & Donasi Fiktif</h3></div>
+            <div id="scamContent"></div>
           </article>
 
           <!-- Grid: Komentar, Provokasi, AI Detection, Klaim, dan Sumber Berita -->

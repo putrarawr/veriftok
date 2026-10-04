@@ -74,6 +74,16 @@ const server = http.createServer(async (req, res) => {
     return;
   }
 
+  if (url.pathname === '/api/trending' && req.method === 'GET') {
+    const fs = require('fs');
+    const TRENDING_FILE = require('path').join(require('os').tmpdir(), 'veriftok-trending.json');
+    let data = [];
+    try { data = JSON.parse(fs.readFileSync(TRENDING_FILE, 'utf8')); } catch { data = []; }
+    res.writeHead(200, { 'Content-Type': 'application/json' });
+    res.end(JSON.stringify(data));
+    return;
+  }
+
   // Static files server
   let filePath = path.join(__dirname, url.pathname === '/' ? 'index.html' : url.pathname);
 

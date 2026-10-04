@@ -981,6 +981,9 @@ TUGAS FORENSIK:
 3. Forensik Suara/Audio: Apakah ucapan asli pembicara, musik dramatis, atau audio dubbing/sound orang lain?
 4. Periksa Manipulasi/De-kontekstualisasi: Apakah rekaman video tampak diambil dari peristiwa lama/tempat lain yang diberi narasi baru?
 5. Evaluasi konsistensi isi video vs judul/caption (apakah clickbait?).
+6. CLICKBAIT & SENSATIONALISM METER: Bandingkan janji/klaim di judul caption dengan isi sebenarnya dari video. Evaluasi apakah judul melebih-lebihkan, memanipulasi emosi, atau sama sekali tidak sesuai isi. Berikan skor 0-100 (0=jujur, 100=clickbait total). Deteksi sinyal: huruf kapital berlebihan, tanda seru/tanya ganda, kata sensasional (HEBOH, GEMPAR, GEGER, DETIK-DETIK, TERNYATA), dan ketidaksesuaian janji vs kenyataan.
+7. DETEKSI PENIPUAN & DONASI FIKTIF: Periksa apakah konten ini memuat ajakan donasi, transfer uang, atau penggalangan dana yang mencurigakan. Deteksi pola: (a) Video menggunakan rekaman bencana/orang sakit/hewan terlantar milik orang lain lalu menempelkan rekening pribadi, (b) Nomor rekening bank/e-wallet/link donasi di caption, (c) Ajakan klik link di bio untuk transfer, (d) Modus "live ngemis" dengan video daur ulang. Periksa juga jika ada nomor rekening, nomor WhatsApp, link Saweria/Kitabisa/OVO/GoPay/Dana yang dicantumkan.
+8. TEMPLATE BALASAN KOMENTAR: Buatkan template balasan komentar TikTok yang sopan, netral, dan berbobot untuk meluruskan klaim video ini. Balasan harus singkat (maksimal 150 karakter untuk shortReply), tidak menyerang pribadi, dan menyertakan fakta atau sumber resmi. Gunakan bahasa santai tapi berbobot agar tidak dihapus filter TikTok.
 
 INFORMASI TAMBAHAN:
 - URL Video: ${url}
@@ -1064,6 +1067,27 @@ FORMAT JSON WAJIB (tanpa markdown wrapper):
       ]
     }
   ],
+  "clickbaitMeter": {
+    "score": 85,
+    "level": "none|low|medium|high|extreme",
+    "titleClaim": "Klaim di judul",
+    "actualContent": "Isi sebenarnya di video",
+    "mismatchExplanation": "Penjelasan gap antara judul dan isi",
+    "signals": ["Sinyal clickbait 1"]
+  },
+  "scamDetection": {
+    "isScamSuspected": false,
+    "type": "none|fake_charity|donation_fraud|financial_scam|identity_scam|other",
+    "riskLevel": "safe|suspicious|dangerous",
+    "explanation": "Penjelasan",
+    "signals": ["Sinyal 1"],
+    "detectedIdentifiers": ["Nomor rekening"]
+  },
+  "counterComment": {
+    "shortReply": "Balasan singkat",
+    "detailedReply": "Balasan detail",
+    "factCheckReply": "Balasan dengan rujukan"
+  },
   "limitations": []
 }`;
 
@@ -1141,11 +1165,14 @@ TUGAS UTAMA:
 1. "substantiveTheme": Tentukan tema substantif sebenarnya dari foto-foto ini dalam 2-4 kata (CONTOH: "Tips Beasiswa Kuliah", "Waspada Modus Penipuan WA"), BUKAN judul heboh.
 2. "onScreenOcr": Ekstrak semua tulisan dan stiker teks di dalam slide foto ini.
 3. Periksa apakah ada klaim hoax atau informasi sesat yang disisipkan di slide-slide foto tersebut.
+6. CLICKBAIT & SENSATIONALISM METER: Bandingkan janji/klaim di judul caption dengan isi sebenarnya dari video. Evaluasi apakah judul melebih-lebihkan, memanipulasi emosi, atau sama sekali tidak sesuai isi. Berikan skor 0-100 (0=jujur, 100=clickbait total). Deteksi sinyal: huruf kapital berlebihan, tanda seru/tanya ganda, kata sensasional (HEBOH, GEMPAR, GEGER, DETIK-DETIK, TERNYATA), dan ketidaksesuaian janji vs kenyataan.
+7. DETEKSI PENIPUAN & DONASI FIKTIF: Periksa apakah konten ini memuat ajakan donasi, transfer uang, atau penggalangan dana yang mencurigakan. Deteksi pola: (a) Video menggunakan rekaman bencana/orang sakit/hewan terlantar milik orang lain lalu menempelkan rekening pribadi, (b) Nomor rekening bank/e-wallet/link donasi di caption, (c) Ajakan klik link di bio untuk transfer, (d) Modus "live ngemis" dengan video daur ulang. Periksa juga jika ada nomor rekening, nomor WhatsApp, link Saweria/Kitabisa/OVO/GoPay/Dana yang dicantumkan.
+8. TEMPLATE BALASAN KOMENTAR: Buatkan template balasan komentar TikTok yang sopan, netral, dan berbobot untuk meluruskan klaim video ini. Balasan harus singkat (maksimal 150 karakter untuk shortReply), tidak menyerang pribadi, dan menyertakan fakta atau sumber resmi. Gunakan bahasa santai tapi berbobot agar tidak dihapus filter TikTok.
 
 URL: ${url}
 Caption: ${fullCaptionText}
 
-Format respons WAJIB JSON persis sesuai struktur VerifTok.`;
+Format respons WAJIB JSON persis sesuai struktur VerifTok. Pastikan termasuk field clickbaitMeter, scamDetection, dan counterComment seperti di analisis video.`;
 
   for (const modelName of candidateModels) {
     const endpoint = `https://generativelanguage.googleapis.com/v1beta/models/${modelName}:generateContent?key=${apiKey}`;
@@ -1202,7 +1229,12 @@ async function analyzeWithGemini(url, videoMeta, realComments, tikwmData, apiKey
 
   const systemPrompt = `Anda adalah pakar verifikasi informasi, deteksi hoax/provokasi, dan analisis media sosial (VerifTok) di Indonesia.
 Ekstrak "substantiveTheme" (tema substantif 2-4 kata, BUKAN judul clickbait).
-Format JSON wajib (tanpa markdown wrapper) sesuai format standar VerifTok.`;
+Pastikan untuk mengevaluasi:
+6. CLICKBAIT & SENSATIONALISM METER: Bandingkan janji/klaim di judul caption dengan isi sebenarnya dari video. Evaluasi apakah judul melebih-lebihkan, memanipulasi emosi, atau sama sekali tidak sesuai isi. Berikan skor 0-100 (0=jujur, 100=clickbait total). Deteksi sinyal: huruf kapital berlebihan, tanda seru/tanya ganda, kata sensasional (HEBOH, GEMPAR, GEGER, DETIK-DETIK, TERNYATA), dan ketidaksesuaian janji vs kenyataan.
+7. DETEKSI PENIPUAN & DONASI FIKTIF: Periksa apakah konten ini memuat ajakan donasi, transfer uang, atau penggalangan dana yang mencurigakan. Deteksi pola: (a) Video menggunakan rekaman bencana/orang sakit/hewan terlantar milik orang lain lalu menempelkan rekening pribadi, (b) Nomor rekening bank/e-wallet/link donasi di caption, (c) Ajakan klik link di bio untuk transfer, (d) Modus "live ngemis" dengan video daur ulang. Periksa juga jika ada nomor rekening, nomor WhatsApp, link Saweria/Kitabisa/OVO/GoPay/Dana yang dicantumkan.
+8. TEMPLATE BALASAN KOMENTAR: Buatkan template balasan komentar TikTok yang sopan, netral, dan berbobot untuk meluruskan klaim video ini. Balasan harus singkat (maksimal 150 karakter untuk shortReply), tidak menyerang pribadi, dan menyertakan fakta atau sumber resmi. Gunakan bahasa santai tapi berbobot agar tidak dihapus filter TikTok.
+
+Format JSON wajib (tanpa markdown wrapper) sesuai format standar VerifTok, termasuk field clickbaitMeter, scamDetection, dan counterComment.`;
 
   const userContext = `URL Video: ${url}
 Caption: ${fullCaptionText}
@@ -1399,6 +1431,10 @@ function analyzeLocally(url, videoMeta, realComments = [], tikwmData = null, liv
       : 'Teks overlay tidak menunjukkan pola penyesatan ekstrem.'
   };
 
+  const clickbaitMeter = buildClickbaitMeter(videoMeta?.title || tikwmData?.title || '', fullCaption);
+  const scamDetection = buildScamDetection(videoMeta?.title || tikwmData?.title || '', fullCaption, detectedTexts);
+  const counterComment = buildCounterComment(quickVerdict, [], liveNews);
+
   return {
     status: 'complete',
     quickVerdict,
@@ -1461,6 +1497,9 @@ function analyzeLocally(url, videoMeta, realComments = [], tikwmData = null, liv
     ],
     aiDetection,
     newsVerificationSources: sources,
+    clickbaitMeter,
+    scamDetection,
+    counterComment,
     analyzedAt: new Date().toISOString(),
     limitations: cleanComments.length === 0 ? ['Komentar publik tidak dapat ditarik dari TikTok.'] : []
   };
@@ -1558,6 +1597,165 @@ function cleanupVideo(filePath) {
   }
 }
 
+const TRENDING_FILE = require('path').join(require('os').tmpdir(), 'veriftok-trending.json');
+
+function saveTrending(report, url) {
+  try {
+    const fs = require('fs');
+    let data = [];
+    try { data = JSON.parse(fs.readFileSync(TRENDING_FILE, 'utf8')); } catch { data = []; }
+    
+    const entry = {
+      id: Date.now().toString(36),
+      url: url,
+      checkedAt: new Date().toISOString(),
+      theme: report.quickVerdict?.substantiveTheme || report.substantiveTheme || '',
+      verdict: report.quickVerdict?.validityVerdict || 'unverified',
+      badgeLabel: report.quickVerdict?.badgeLabel || 'BELUM DIVERIFIKASI',
+      badgeType: report.quickVerdict?.badgeType || 'warning',
+      score: report.quickVerdict?.score ?? report.credibility?.score ?? 0,
+      summary: report.quickVerdict?.summaryVerdict || '',
+      authorName: report.video?.authorName || '',
+      authorUsername: report.video?.authorUsername || '',
+      thumbnailUrl: report.video?.thumbnailUrl || '',
+      isPhotoMode: report.isPhotoMode || false
+    };
+    
+    data = data.filter(d => d.url !== url);
+    data.unshift(entry);
+    data = data.slice(0, 20);
+    
+    fs.writeFileSync(TRENDING_FILE, JSON.stringify(data, null, 2), 'utf8');
+  } catch (err) {
+    console.error('[Trending] Failed to save:', err.message);
+  }
+}
+
+function buildClickbaitMeter(title, caption) {
+  let score = 0;
+  const signals = [];
+  const upperTitle = (title || '').toUpperCase();
+  const combined = `${title} ${caption}`.toLowerCase();
+  
+  const capsWords = (title || '').match(/[A-Z]{4,}/g) || [];
+  if (capsWords.length >= 2) { score += 20; signals.push('Huruf kapital berlebihan pada judul'); }
+  
+  const exclCount = (title || '').split('!').length - 1;
+  const questCount = (title || '').split('?').length - 1;
+  if (exclCount >= 2) { score += 15; signals.push(`${exclCount} tanda seru berlebihan`); }
+  if (questCount >= 2) { score += 10; signals.push('Tanda tanya berlebihan'); }
+  
+  const sensationalWords = ['heboh','geger','gempar','detik-detik','ternyata','terkuak','mencengangkan','bikin kaget','viral','tak disangka','auto','langsung','wajib tonton','jangan sampai','rahasia'];
+  const found = sensationalWords.filter(w => combined.includes(w));
+  if (found.length > 0) { score += found.length * 12; signals.push(`Kata sensasional: ${found.join(', ')}`); }
+  
+  const clickbaitTags = ['#fyp','#viral','#foryoupage','#trending','#xyzbca'];
+  const tagCount = clickbaitTags.filter(t => combined.includes(t)).length;
+  if (tagCount >= 3) { score += 10; signals.push('Hashtag clickbait berlebihan'); }
+  
+  score = Math.min(100, score);
+  const level = score <= 15 ? 'none' : score <= 35 ? 'low' : score <= 55 ? 'medium' : score <= 80 ? 'high' : 'extreme';
+  
+  return {
+    score,
+    level,
+    titleClaim: title || '',
+    actualContent: '',
+    mismatchExplanation: signals.length > 0 ? `Terdeteksi ${signals.length} sinyal sensasionalisme pada judul/caption konten.` : 'Judul dan caption tampak wajar tanpa indikasi clickbait.',
+    signals
+  };
+}
+
+function buildScamDetection(title, caption, ocrTexts) {
+  const combined = `${title} ${caption} ${(ocrTexts || []).join(' ')}`.toLowerCase();
+  const signals = [];
+  let isScamSuspected = false;
+  let type = 'none';
+  let riskLevel = 'safe';
+  const detectedIdentifiers = [];
+  
+  const rekeningPattern = /(?:rek(?:ening)?|transfer|tf)\s*[:.]?\s*([\d]{8,16})/gi;
+  const rekeningMatches = combined.match(rekeningPattern);
+  if (rekeningMatches) {
+    signals.push('Nomor rekening terdeteksi di caption/teks layar');
+    detectedIdentifiers.push(...rekeningMatches);
+    isScamSuspected = true;
+    type = 'donation_fraud';
+  }
+  
+  const donationKeywords = ['donasi','sumbangan','galang dana','open donasi','bantu transfer','sedekah','infaq','kitabisa','saweria','sociabuzz','trakteer','link di bio','klik link'];
+  const foundDonation = donationKeywords.filter(k => combined.includes(k));
+  if (foundDonation.length >= 2) {
+    signals.push(`Kata kunci donasi/transfer: ${foundDonation.join(', ')}`);
+    isScamSuspected = true;
+    type = type === 'none' ? 'fake_charity' : type;
+  }
+  
+  const ewalletPattern = /(?:ovo|gopay|dana|shopeepay|linkaja)\s*[:.]?\s*([\d]{10,14})/gi;
+  const ewalletMatches = combined.match(ewalletPattern);
+  if (ewalletMatches) {
+    signals.push('Nomor e-wallet terdeteksi');
+    detectedIdentifiers.push(...ewalletMatches);
+    isScamSuspected = true;
+  }
+  
+  if (combined.includes('wa.me/') || combined.includes('whatsapp.com/') || /hubungi\s*(wa|whatsapp)/i.test(combined)) {
+    signals.push('Link/nomor WhatsApp terdeteksi (potensi modus kontak langsung)');
+    isScamSuspected = true;
+    type = type === 'none' ? 'financial_scam' : type;
+  }
+  
+  const manipPatterns = ['bantu share','bantu viral','tolong sebarkan','kasihan','miris','nangis','sedih banget'];
+  const foundManip = manipPatterns.filter(k => combined.includes(k));
+  if (foundManip.length >= 2 && isScamSuspected) {
+    signals.push('Pola manipulasi emosional untuk memancing donasi');
+    riskLevel = 'dangerous';
+  }
+  
+  if (isScamSuspected && riskLevel === 'safe') riskLevel = 'suspicious';
+  
+  return {
+    isScamSuspected,
+    type,
+    riskLevel,
+    explanation: isScamSuspected 
+      ? `Terdeteksi ${signals.length} sinyal yang mengindikasikan potensi penipuan atau penggalangan dana mencurigakan.`
+      : 'Tidak ditemukan indikasi penipuan atau ajakan donasi mencurigakan pada konten ini.',
+    signals,
+    detectedIdentifiers
+  };
+}
+
+function buildCounterComment(quickVerdict, claims, newsResults) {
+  const verdict = quickVerdict?.validityVerdict || 'unverified';
+  const theme = quickVerdict?.substantiveTheme || 'topik ini';
+  const firstSource = (newsResults || [])[0];
+  
+  let shortReply, detailedReply, factCheckReply;
+  
+  if (verdict === 'valid') {
+    shortReply = `Informasi tentang ${theme} ini sudah dikonfirmasi kebenarannya oleh media resmi.`;
+    detailedReply = `Setelah diperiksa, klaim dalam video ini tentang ${theme} sesuai dengan fakta yang dilaporkan media kredibel.`;
+    factCheckReply = firstSource 
+      ? `Informasi ini valid. Sumber: ${firstSource.title} (${firstSource.publisher})`
+      : `Informasi tentang ${theme} ini telah diverifikasi dan sesuai fakta.`;
+  } else if (verdict === 'false' || verdict === 'misleading') {
+    shortReply = `Hati-hati, klaim tentang ${theme} ini tidak sesuai fakta. Cek dulu sebelum share.`;
+    detailedReply = `Video ini mengandung klaim yang tidak akurat tentang ${theme}. Sebaiknya cek fakta dulu sebelum menyebarkan.`;
+    factCheckReply = firstSource
+      ? `Klaim ini tidak akurat. Cek fakta: ${firstSource.title} (${firstSource.publisher})`  
+      : `Klaim tentang ${theme} ini sudah diperiksa dan tidak sesuai fakta. Jangan langsung percaya, cek dulu.`;
+  } else {
+    shortReply = `Klaim tentang ${theme} ini belum bisa dikonfirmasi. Bijak dalam menyebarkan.`;
+    detailedReply = `Informasi tentang ${theme} dalam video ini belum terverifikasi oleh sumber resmi. Sebaiknya tunggu konfirmasi.`;
+    factCheckReply = firstSource
+      ? `Belum bisa dikonfirmasi. Baca juga: ${firstSource.title} (${firstSource.publisher})`
+      : `Klaim tentang ${theme} ini masih perlu diverifikasi. Jangan langsung share sebelum pasti.`;
+  }
+  
+  return { shortReply, detailedReply, factCheckReply };
+}
+
 // MAIN HANDLER
 module.exports = async function analyze(req, res) {
   if (req.method !== 'POST') {
@@ -1602,7 +1800,7 @@ module.exports = async function analyze(req, res) {
           liveNews
         );
         report.newsVerificationSources = generateNewsVerificationSources(substantiveTheme, [], null);
-        return json(res, 200, report);
+        saveTrending(report, typeof resolvedUrl !== 'undefined' ? resolvedUrl : (typeof rawUrl !== 'undefined' ? rawUrl : '')); return json(res, 200, report);
       } else if (mimeType.startsWith('video/')) {
         // Video file uploaded
         if (!fs.existsSync(TEMP_DIR)) fs.mkdirSync(TEMP_DIR, { recursive: true });
@@ -1635,7 +1833,7 @@ module.exports = async function analyze(req, res) {
             liveNews
           );
           report.newsVerificationSources = generateNewsVerificationSources(substantiveTheme, [], null);
-          return json(res, 200, report);
+          saveTrending(report, typeof resolvedUrl !== 'undefined' ? resolvedUrl : (typeof rawUrl !== 'undefined' ? rawUrl : '')); return json(res, 200, report);
         } finally {
           cleanupVideo(videoFilePath);
         }
@@ -1647,6 +1845,7 @@ module.exports = async function analyze(req, res) {
   }
 
   // Case 2: TikTok URL Submission
+  const analysisMode = req.body?.mode || 'full';
   let rawUrl = typeof req.body?.url === 'string' ? req.body.url.trim() : '';
   if (rawUrl && !rawUrl.startsWith('http://') && !rawUrl.startsWith('https://')) {
     rawUrl = 'https://' + rawUrl;
@@ -1679,7 +1878,8 @@ module.exports = async function analyze(req, res) {
   // Determine Substantive Theme & Fetch Live News Articles
   const entities = extractKeyEntities(effectiveTitle);
   const preliminaryTheme = extractNewsTopicQuery(effectiveTitle, entities, null);
-  const liveNews = await fetchLiveNews(preliminaryTheme);
+  const shouldFetchNews = analysisMode !== 'ai';
+  const liveNews = shouldFetchNews ? await fetchLiveNews(preliminaryTheme) : [];
 
   // Check if TikTok Photo Mode (Carousel Slide)
   if (tikwmData?.isPhotoMode && tikwmData.photoSlides.length > 0) {
@@ -1716,12 +1916,13 @@ module.exports = async function analyze(req, res) {
       liveNews
     );
     report.analyzedAt = new Date().toISOString();
-    return json(res, 200, report);
+    saveTrending(report, typeof resolvedUrl !== 'undefined' ? resolvedUrl : (typeof rawUrl !== 'undefined' ? rawUrl : '')); return json(res, 200, report);
   }
 
   // Standard Video Mode: Download video for deep multimodal analysis if Gemini API key exists
   let videoDownload = null;
-  if (geminiApiKey && tikwmData?.videoDownloadUrl) {
+  const shouldDownloadVideo = analysisMode === 'full' || analysisMode === 'ai';
+  if (shouldDownloadVideo && geminiApiKey && tikwmData?.videoDownloadUrl) {
     videoDownload = await downloadTikTokVideo(tikwmData.videoDownloadUrl);
   }
 
@@ -1791,7 +1992,7 @@ module.exports = async function analyze(req, res) {
       }
       report.analyzedAt = new Date().toISOString();
 
-      return json(res, 200, report);
+      saveTrending(report, typeof resolvedUrl !== 'undefined' ? resolvedUrl : (typeof rawUrl !== 'undefined' ? rawUrl : '')); return json(res, 200, report);
     } catch (err) {
       console.error('[VideoAnalysis] Deep multimodal error, falling back:', err.message);
     } finally {
@@ -1823,7 +2024,7 @@ module.exports = async function analyze(req, res) {
       );
 
       report.analyzedAt = new Date().toISOString();
-      return json(res, 200, report);
+      saveTrending(report, typeof resolvedUrl !== 'undefined' ? resolvedUrl : (typeof rawUrl !== 'undefined' ? rawUrl : '')); return json(res, 200, report);
     } catch (err) {
       console.error('[TextAnalysis] Gemini text fallback error:', err.message);
     }
