@@ -45,9 +45,8 @@ const btnTabDeep = document.querySelector('#btnTabDeep');
 const quickView = document.querySelector('#quickVerdictView');
 const deepView = document.querySelector('#deepForensicView');
 
-const validTikTokHosts = new Set(['tiktok.com', 'www.tiktok.com', 'm.tiktok.com', 'vm.tiktok.com', 'vt.tiktok.com']);
-const verdictLabels = { supported: 'Didukung Sumber', false: 'Tidak Akurat / Hoax', misleading: 'Menyesatkan', unverified: 'Belum Terverifikasi', mixed: 'Sebagian Benar' };
-const levelLabels = { low: 'Rendah (Netral)', medium: 'Sedang (Menggiring Opini)', high: 'Tinggi (Sensasional / Provokatif)', unknown: 'Belum Diketahui' };
+const verdictLabels = { supported: 'Valid & Sesuai Fakta', false: 'Tidak Akurat / Hoax', misleading: 'Menyesatkan', unverified: 'Perlu Kroscek', mixed: 'Sebagian Benar' };
+const levelLabels = { low: 'Rendah (Netral & Wajar)', medium: 'Sedang (Sorotan Opini)', high: 'Tinggi (Sensasional / Provokatif)', unknown: 'Belum Diketahui' };
 
 // ==========================================
 // INPUT MODE TOGGLE (URL vs DIRECT FILE)
@@ -1286,9 +1285,12 @@ function renderNewsSources(data) {
 
   const newsSources = Array.isArray(data.newsVerificationSources) ? data.newsVerificationSources : [];
   if (newsSources.length) {
+    const hasActualNews = newsSources.some(s => s.isActualArticle);
     const introText = document.createElement('p');
     introText.className = 'report-explanation';
-    introText.textContent = 'Akses pencarian berita dan arsip cek fakta nasional resmi yang relevan:';
+    introText.textContent = hasActualNews
+      ? 'Ditemukan laporan berita resmi dari media nasional dan portal cek fakta terkait isu ini:'
+      : 'Rujukan penelusuran cek fakta nasional dan arsip berita resmi:';
     newsPanel.append(introText);
 
     const grid = document.createElement('div');
@@ -1297,13 +1299,21 @@ function renderNewsSources(data) {
       try {
         const url = new URL(src.url);
         const card = document.createElement('a');
-        card.className = 'news-source-card';
+        card.className = `news-source-card ${src.isActualArticle ? 'actual-news-card' : 'factcheck-portal-card'}`;
         card.href = url.href;
         card.target = '_blank';
         card.rel = 'noopener noreferrer';
+
+        const badgeText = src.isActualArticle ? 'BERITA RESMI' : 'PORTAL CEK FAKTA';
+        const badgeClass = src.isActualArticle ? 'news-badge-actual' : 'news-badge-portal';
+
         card.innerHTML = `
-          <span class="news-source-publisher">${safeText(src.publisher, url.hostname)}</span>
-          <span class="news-source-title">${safeText(src.title, 'Cari berita terkait')}</span>
+          <div class="news-source-top">
+            <span class="news-source-publisher">${safeText(src.publisher, url.hostname)}</span>
+            <span class="news-source-type-pill ${badgeClass}">${badgeText}</span>
+          </div>
+          <span class="news-source-title">${safeText(src.title, 'Lihat rujukan berita')}</span>
+          ${src.pubDate ? `<span class="news-source-date">${src.pubDate}</span>` : ''}
           <span class="news-source-arrow">↗</span>
         `;
         grid.append(card);

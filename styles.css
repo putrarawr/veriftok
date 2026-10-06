@@ -1389,6 +1389,52 @@ h1 em {
   color: var(--accent-emerald-light);
 }
 
+.news-source-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  margin-bottom: 2px;
+  padding-right: 20px;
+}
+
+.news-source-type-pill {
+  font: 700 9.5px var(--font-mono);
+  padding: 2px 7px;
+  border-radius: 4px;
+  letter-spacing: 0.5px;
+  white-space: nowrap;
+}
+
+.news-badge-actual {
+  background: rgba(16, 185, 129, 0.15);
+  color: var(--accent-emerald-light);
+  border: 1px solid rgba(16, 185, 129, 0.35);
+}
+
+.news-badge-portal {
+  background: rgba(255, 255, 255, 0.08);
+  color: var(--text-secondary);
+  border: 1px solid var(--border-light);
+}
+
+.actual-news-card {
+  border-color: rgba(16, 185, 129, 0.25);
+  background: linear-gradient(135deg, rgba(16, 185, 129, 0.05), rgba(0, 0, 0, 0.2));
+}
+
+.actual-news-card:hover {
+  border-color: var(--accent-emerald-light);
+  background: linear-gradient(135deg, rgba(16, 185, 129, 0.12), rgba(16, 185, 129, 0.02));
+}
+
+.news-source-date {
+  font: 400 11px var(--font-mono);
+  color: var(--text-muted);
+  margin-top: auto;
+  padding-top: 6px;
+}
+
 /* Signal Grid 3-col on wider screens */
 @media (min-width: 841px) {
   .signal-list {
