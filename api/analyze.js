@@ -33,7 +33,7 @@ function json(res, status, payload) {
 
 function isTikTokUrl(value) {
   if (typeof value !== 'string') return false;
-  let str = value.trim();
+  let str = value.trim().replace(/[.,;:!?)>]+$/, '');
   if (!str.startsWith('http://') && !str.startsWith('https://')) {
     str = 'https://' + str;
   }
@@ -1982,7 +1982,7 @@ module.exports = async function analyze(req, res) {
 
   // Case 2: TikTok URL Submission
   const analysisMode = req.body?.mode || 'full';
-  let rawUrl = typeof req.body?.url === 'string' ? req.body.url.trim() : '';
+  let rawUrl = typeof req.body?.url === 'string' ? req.body.url.trim().replace(/[.,;:!?)>]+$/, '') : '';
   if (rawUrl && !rawUrl.startsWith('http://') && !rawUrl.startsWith('https://')) {
     rawUrl = 'https://' + rawUrl;
   }

@@ -45,6 +45,7 @@ const btnTabDeep = document.querySelector('#btnTabDeep');
 const quickView = document.querySelector('#quickVerdictView');
 const deepView = document.querySelector('#deepForensicView');
 
+const validTikTokHosts = new Set(['tiktok.com', 'www.tiktok.com', 'm.tiktok.com', 'vm.tiktok.com', 'vt.tiktok.com', 'v.tiktok.com']);
 const verdictLabels = { supported: 'Valid & Sesuai Fakta', false: 'Tidak Akurat / Hoax', misleading: 'Menyesatkan', unverified: 'Perlu Kroscek', mixed: 'Sebagian Benar' };
 const levelLabels = { low: 'Rendah (Netral & Wajar)', medium: 'Sedang (Sorotan Opini)', high: 'Tinggi (Sensasional / Provokatif)', unknown: 'Belum Diketahui' };
 
@@ -200,10 +201,12 @@ function extractAndValidateTikTokUrl(value) {
 
   if (!targetUrl) return null;
 
+  targetUrl = targetUrl.replace(/[.,;:!?)>]+$/, '');
+
   try {
     const parsed = new URL(targetUrl);
     const host = parsed.hostname.toLowerCase();
-    if (validTikTokHosts.has(host) || host.endsWith('.tiktok.com')) {
+    if (host === 'tiktok.com' || host.endsWith('.tiktok.com') || (typeof validTikTokHosts !== 'undefined' && validTikTokHosts.has(host))) {
       return parsed.href;
     }
   } catch {
