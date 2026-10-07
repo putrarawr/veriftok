@@ -3853,3 +3853,253 @@ h1 em {
   }
 }
 
+/* Navigation in Topbar */
+.topbar-nav {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.topbar-nav-link {
+  font: 600 12px var(--font-heading);
+  color: var(--text-muted);
+  text-decoration: none;
+  padding: 5px 8px;
+  border-radius: 6px;
+  transition: all 0.2s ease;
+}
+
+.topbar-nav-link:hover {
+  color: var(--accent-emerald-light);
+  background: rgba(16, 185, 129, 0.08);
+}
+
+@media (max-width: 900px) {
+  .topbar-nav {
+    display: none;
+  }
+}
+
+/* Shared Section Styling */
+.section-container {
+  max-width: var(--max-width, 920px);
+  margin: 0 auto;
+}
+
+.section-header {
+  text-align: center;
+  margin-bottom: 32px;
+}
+
+.section-kicker {
+  display: inline-block;
+  font: 700 11px var(--font-mono);
+  color: var(--accent-emerald-light);
+  background: rgba(16, 185, 129, 0.12);
+  border: 1px solid rgba(16, 185, 129, 0.3);
+  padding: 4px 12px;
+  border-radius: 20px;
+  letter-spacing: 0.8px;
+  margin-bottom: 12px;
+}
+
+.section-header h2 {
+  font: 800 24px/1.3 var(--font-heading);
+  color: var(--text-primary);
+  margin: 0 0 10px;
+}
+
+.section-subtitle {
+  font-size: 14px;
+  color: var(--text-muted);
+  max-width: 620px;
+  margin: 0 auto;
+  line-height: 1.6;
+}
+
+/* How It Works Section */
+.how-it-works-section {
+  margin-top: 56px;
+  padding: 40px 0 20px;
+  border-top: 1px solid var(--border-light);
+}
+
+.how-steps-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 16px;
+}
+
+.how-step-card {
+  background: var(--bg-surface);
+  border: 1px solid var(--border-color);
+  border-radius: 14px;
+  padding: 24px 24px;
+  transition: all 0.25s ease;
+  position: relative;
+}
+
+.how-step-card:hover {
+  border-color: rgba(16, 185, 129, 0.45);
+  background: var(--bg-card);
+  transform: translateY(-2px);
+}
+
+.step-badge {
+  display: inline-block;
+  font: 700 11px var(--font-mono);
+  color: var(--accent-emerald-light);
+  background: rgba(16, 185, 129, 0.15);
+  border: 1px solid rgba(16, 185, 129, 0.3);
+  padding: 3px 10px;
+  border-radius: 6px;
+  letter-spacing: 0.5px;
+  margin-bottom: 12px;
+}
+
+.how-step-card h3 {
+  margin: 0 0 10px;
+  font: 700 16px/1.35 var(--font-heading);
+  color: var(--text-primary);
+}
+
+.how-step-card p {
+  margin: 0;
+  font-size: 13.5px;
+  line-height: 1.65;
+  color: var(--text-secondary);
+}
+
+.how-step-card p strong {
+  color: var(--text-primary);
+}
+
+/* Use Cases Section */
+.use-cases-section {
+  margin-top: 48px;
+  padding: 40px 0 20px;
+  border-top: 1px solid var(--border-light);
+}
+
+.use-cases-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 16px;
+}
+
+.use-case-card {
+  background: var(--bg-surface);
+  border: 1px solid var(--border-color);
+  border-radius: 14px;
+  padding: 22px 24px;
+  transition: all 0.25s ease;
+}
+
+.use-case-card:hover {
+  border-color: rgba(16, 185, 129, 0.4);
+  background: var(--bg-card);
+  transform: translateY(-2px);
+}
+
+.use-case-header {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  margin-bottom: 10px;
+}
+
+.use-case-code {
+  font: 700 12px var(--font-mono);
+  color: var(--accent-emerald-light);
+  background: rgba(16, 185, 129, 0.15);
+  padding: 3px 8px;
+  border-radius: 6px;
+  flex-shrink: 0;
+  margin-top: 1px;
+}
+
+.use-case-header h3 {
+  margin: 0;
+  font: 700 15px/1.4 var(--font-heading);
+  color: var(--text-primary);
+}
+
+.use-case-card p {
+  margin: 0;
+  font-size: 13.5px;
+  line-height: 1.65;
+  color: var(--text-secondary);
+}
+
+/* Methodology Section */
+.methodology-section {
+  margin-top: 48px;
+  padding: 40px 0 20px;
+  border-top: 1px solid var(--border-light);
+}
+
+.methodology-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 16px;
+}
+
+.method-card {
+  background: var(--bg-surface);
+  border: 1px solid var(--border-color);
+  border-radius: 14px;
+  padding: 22px 22px;
+  transition: all 0.25s ease;
+}
+
+.method-card:hover {
+  border-color: rgba(16, 185, 129, 0.4);
+  background: var(--bg-card);
+}
+
+.method-icon-num {
+  display: inline-block;
+  font: 800 13px var(--font-mono);
+  color: var(--accent-emerald-light);
+  background: rgba(16, 185, 129, 0.15);
+  border: 1px solid rgba(16, 185, 129, 0.35);
+  width: 28px;
+  height: 28px;
+  line-height: 26px;
+  text-align: center;
+  border-radius: 8px;
+  margin-bottom: 12px;
+}
+
+.method-card h3 {
+  margin: 0 0 10px;
+  font: 700 14.5px/1.4 var(--font-heading);
+  color: var(--text-primary);
+}
+
+.method-card p {
+  margin: 0;
+  font-size: 13px;
+  line-height: 1.6;
+  color: var(--text-secondary);
+}
+
+@media (max-width: 768px) {
+  .how-it-works-section,
+  .use-cases-section,
+  .methodology-section {
+    margin-top: 36px;
+    padding: 30px 0 10px;
+  }
+  .how-steps-grid,
+  .use-cases-grid,
+  .methodology-grid {
+    grid-template-columns: 1fr;
+    gap: 12px;
+  }
+  .section-header h2 {
+    font-size: 20px;
+  }
+}
+
+

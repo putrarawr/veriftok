@@ -1,11 +1,21 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"
-        xmlns:xhtml="http://www.w3.org/1999/xhtml">
+        xmlns:xhtml="http://www.w3.org/1999/xhtml"
+        xmlns:image="http://www.google.com/schemas/sitemap-image/1.1">
   <url>
     <loc>https://veriftok.vercel.app/</loc>
     <lastmod>2026-10-07</lastmod>
     <changefreq>daily</changefreq>
     <priority>1.0</priority>
     <xhtml:link rel="alternate" hreflang="id" href="https://veriftok.vercel.app/" />
+    <image:image>
+      <image:loc>https://veriftok.vercel.app/icons/og-cover.png</image:loc>
+      <image:title>VerifTok - Platform Forensik dan Cek Fakta Video TikTok Indonesia</image:title>
+      <image:caption>Verifikasi video hoax, deteksi rekayasa AI, pengukur clickbait, dan cross-check berita resmi nasional</image:caption>
+    </image:image>
+    <image:image>
+      <image:loc>https://veriftok.vercel.app/icons/veriftok-512.png</image:loc>
+      <image:title>Logo Resmi VerifTok</image:title>
+    </image:image>
   </url>
 </urlset>

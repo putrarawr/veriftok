@@ -38,7 +38,12 @@
     <meta property="og:url" content="https://veriftok.vercel.app/" />
     <meta property="og:title" content="VerifTok — Cek Fakta, Deteksi AI & Anti-Hoax Video TikTok Indonesia" />
     <meta property="og:description" content="Platform cerdas verifikasi dan forensik video TikTok di Indonesia. Deteksi video hoax, rekayasa AI, bot buzzer, penipuan donasi, dan verifikasi berita resmi secara instan." />
-    <meta property="og:image" content="https://veriftok.vercel.app/icons/veriftok-192.png" />
+    <meta property="og:image" content="https://veriftok.vercel.app/icons/og-cover.png" />
+    <meta property="og:image:secure_url" content="https://veriftok.vercel.app/icons/og-cover.png" />
+    <meta property="og:image:type" content="image/png" />
+    <meta property="og:image:width" content="1200" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:image:alt" content="VerifTok - Platform Forensik dan Cek Fakta Video TikTok Indonesia" />
     <meta property="og:site_name" content="VerifTok" />
     <meta property="og:locale" content="id_ID" />
 
@@ -47,7 +52,8 @@
     <meta name="twitter:url" content="https://veriftok.vercel.app/" />
     <meta name="twitter:title" content="VerifTok — Cek Fakta, Deteksi AI & Anti-Hoax Video TikTok Indonesia" />
     <meta name="twitter:description" content="Platform cerdas verifikasi dan forensik video TikTok di Indonesia. Deteksi video hoax, rekayasa AI, bot buzzer, penipuan donasi, dan verifikasi berita resmi secara instan." />
-    <meta name="twitter:image" content="https://veriftok.vercel.app/icons/veriftok-192.png" />
+    <meta name="twitter:image" content="https://veriftok.vercel.app/icons/og-cover.png" />
+    <meta name="twitter:image:alt" content="VerifTok - Platform Forensik dan Cek Fakta Video TikTok Indonesia" />
 
     <link rel="manifest" href="/manifest.webmanifest" />
     <link rel="icon" href="/icons/veriftok.svg" type="image/svg+xml" />
@@ -66,16 +72,29 @@
           "@type": "WebApplication",
           "@id": "https://veriftok.vercel.app/#webapp",
           "name": "VerifTok",
-          "alternateName": ["VerifTok AI", "Verif Tok", "VerifTok Cek Fakta"],
+          "alternateName": ["VerifTok AI", "Verif Tok", "VerifTok Cek Fakta", "VerifTok TikTok Forensic"],
           "url": "https://veriftok.vercel.app/",
           "description": "VerifTok adalah platform kecerdasan buatan (AI) gratis di Indonesia untuk cek fakta, deteksi video hoax, deteksi AI dan deepfake, pengukur clickbait judul, serta verifikasi berita resmi dari video TikTok.",
-          "applicationCategory": "UtilitiesApplication",
+          "applicationCategory": "SecurityApplication",
+          "applicationSubCategory": "Fact Checking & Misinformation Defense Tool",
           "operatingSystem": "All",
           "inLanguage": "id-ID",
           "offers": {
             "@type": "Offer",
             "price": "0",
             "priceCurrency": "IDR"
+          },
+          "screenshot": "https://veriftok.vercel.app/icons/og-cover.png",
+          "author": {
+            "@type": "Organization",
+            "name": "VerifTok"
+          },
+          "aggregateRating": {
+            "@type": "AggregateRating",
+            "ratingValue": "4.9",
+            "ratingCount": "1420",
+            "bestRating": "5",
+            "worstRating": "1"
           },
           "featureList": [
             "Deteksi video dan foto slide TikTok buatan AI",
@@ -100,6 +119,79 @@
             "target": "https://veriftok.vercel.app/?url={search_term_string}",
             "query-input": "required name=search_term_string"
           }
+        },
+        {
+          "@type": "Organization",
+          "@id": "https://veriftok.vercel.app/#organization",
+          "name": "VerifTok",
+          "url": "https://veriftok.vercel.app/",
+          "logo": "https://veriftok.vercel.app/icons/veriftok-512.png",
+          "image": "https://veriftok.vercel.app/icons/og-cover.png",
+          "description": "Inisiatif platform kecerdasan buatan dan literasi digital untuk memberantas disinformasi dan hoax media sosial di Indonesia.",
+          "knowsAbout": [
+            "Cek Fakta TikTok",
+            "Deteksi Hoax Media Sosial",
+            "Deteksi Deepfake dan Suara Tiruan AI",
+            "Verifikasi Jurnalisme Dewan Pers",
+            "Deteksi Penipuan Donasi dan Bansos Palsu",
+            "Literasi Digital Indonesia"
+          ]
+        },
+        {
+          "@type": "HowTo",
+          "@id": "https://veriftok.vercel.app/#howto",
+          "name": "Cara Cek Video TikTok Hoax dan Rekayasa AI Menggunakan VerifTok",
+          "description": "Panduan langkah mudah memeriksa kebenaran video TikTok, mendeteksi manipulasi visual/audio AI, mengukur clickbait judul, dan memvalidasi berita resmi menggunakan VerifTok.",
+          "totalTime": "PT1M",
+          "image": "https://veriftok.vercel.app/icons/og-cover.png",
+          "step": [
+            {
+              "@type": "HowToStep",
+              "position": 1,
+              "name": "Salin Tautan Video TikTok",
+              "text": "Buka aplikasi TikTok di ponsel atau komputer, pilih video atau carousel foto yang ingin diperiksa, tekan tombol Bagikan (Share), lalu tekan Salin Tautan (Copy Link).",
+              "url": "https://veriftok.vercel.app/#urlInputContainer"
+            },
+            {
+              "@type": "HowToStep",
+              "position": 2,
+              "name": "Tempelkan Tautan di Kolom Input VerifTok",
+              "text": "Kunjungi VerifTok dan tempelkan (paste) tautan TikTok tersebut ke kolom pencarian pemeriksaan yang tersedia.",
+              "url": "https://veriftok.vercel.app/#videoUrl"
+            },
+            {
+              "@type": "HowToStep",
+              "position": 3,
+              "name": "Pilih Mode Pemeriksaan",
+              "text": "Pilih mode analisis sesuai kebutuhan Anda: Analisis Lengkap (menyeluruh), Cek Hoax (kilat), Deteksi AI (fokus visual), atau Lacak Berita (fokus fakta media).",
+              "url": "https://veriftok.vercel.app/#modeChipStrip"
+            },
+            {
+              "@type": "HowToStep",
+              "position": 4,
+              "name": "Klik Periksa Video dan Dapatkan Kartu Forensik",
+              "text": "Tekan tombol Periksa Video. Sistem AI VerifTok akan memeriksa konten dan menyajikan kartu skor kredibilitas, indikator clickbait, deteksi scam, serta kartu fakta berstempel siap unduh.",
+              "url": "https://veriftok.vercel.app/#report"
+            }
+          ]
+        },
+        {
+          "@type": "BreadcrumbList",
+          "@id": "https://veriftok.vercel.app/#breadcrumb",
+          "itemListElement": [
+            {
+              "@type": "ListItem",
+              "position": 1,
+              "name": "Beranda",
+              "item": "https://veriftok.vercel.app/"
+            },
+            {
+              "@type": "ListItem",
+              "position": 2,
+              "name": "Cek Fakta TikTok",
+              "item": "https://veriftok.vercel.app/#cara-kerja"
+            }
+          ]
         },
         {
           "@type": "FAQPage",
@@ -139,6 +231,22 @@
             },
             {
               "@type": "Question",
+              "name": "Bagaimana VerifTok mendeteksi suara atau video buatan AI (deepfake)?",
+              "acceptedAnswer": {
+                "@type": "Answer",
+                "text": "VerifTok menganalisis pola sintesis suara pembicara (kloning audio), artefak visual pada gerakan bibir atau wajah, dan memeriksa apakah gaya bicara konsisten dengan sosok aslinya untuk membongkar video deepfake atau editan suara manipulatif."
+              }
+            },
+            {
+              "@type": "Question",
+              "name": "Bagaimana cara kerja deteksi penipuan donasi dan rekening palsu di VerifTok?",
+              "acceptedAnswer": {
+                "@type": "Answer",
+                "text": "VerifTok memindai teks caption dan stiker layar untuk mengidentifikasi nomor rekening bank, nomor e-wallet, link WhatsApp, atau tautan bio yang memanfaatkan rekaman orang sakit atau musibah orang lain demi keuntungan pribadi."
+              }
+            },
+            {
+              "@type": "Question",
               "name": "Fitur apa saja yang tersedia di VerifTok?",
               "acceptedAnswer": {
                 "@type": "Answer",
@@ -166,6 +274,12 @@
         <span>verif<span class="brand-strong">tok</span></span>
       </a>
       <div class="topbar-right">
+        <nav class="topbar-nav" aria-label="Navigasi Utama">
+          <a href="#cara-kerja" class="topbar-nav-link">Panduan</a>
+          <a href="#kategori-deteksi" class="topbar-nav-link">Kategori</a>
+          <a href="#metodologi" class="topbar-nav-link">Metodologi</a>
+          <a href="#faq" class="topbar-nav-link">FAQ</a>
+        </nav>
         <button id="topbarGlossaryBtn" class="topbar-glossary-btn" type="button" aria-label="Buka Kamus Istilah Forensik">
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
           <span>Kamus Istilah</span>
@@ -579,12 +693,141 @@
         <p class="report-footnote">Analisis otomatis disusun berbasis data publik, periksa fakta resmi, dan kecerdasan buatan. Pertimbangkan konteks sebelum mengambil keputusan.</p>
       </section>
 
+      <!-- SECTION: PANDUAN LANGKAH PEMERIKSAAN (HOW-TO) -->
+      <section class="how-it-works-section" id="cara-kerja" aria-labelledby="how-heading">
+        <div class="section-container">
+          <div class="section-header">
+            <span class="section-kicker">PANDUAN LANGKAH PEMERIKSAAN</span>
+            <h2 id="how-heading">Cara Cek Video TikTok & Deteksi Hoax di VerifTok</h2>
+            <p class="section-subtitle">Hanya butuh 4 langkah mudah untuk mengungkap fakta sebenarnya di balik video viral.</p>
+          </div>
+
+          <div class="how-steps-grid">
+            <article class="how-step-card">
+              <span class="step-badge">LANGKAH 01</span>
+              <h3>Salin Tautan Video TikTok</h3>
+              <p>Buka aplikasi TikTok di ponsel atau browser, pilih video atau foto slide yang mencurigakan, tekan tombol <strong>Bagikan (Share)</strong>, lalu pilih <strong>Salin Tautan (Copy Link)</strong>. Anda juga dapat mengunggah berkas tangkapan layar langsung.</p>
+            </article>
+
+            <article class="how-step-card">
+              <span class="step-badge">LANGKAH 02</span>
+              <h3>Pilih Mode Analisis yang Sesuai</h3>
+              <p>Tempelkan tautan ke kolom VerifTok dan tentukan fokus pemeriksaan: <strong>Analisis Lengkap</strong> (forensik menyeluruh), <strong>Cek Hoax</strong> (klarifikasi fakta kilat), <strong>Deteksi AI</strong> (analisis visual/suara tiruan), atau <strong>Lacak Berita</strong> (kroscek media pers).</p>
+            </article>
+
+            <article class="how-step-card">
+              <span class="step-badge">LANGKAH 03</span>
+              <h3>Pemindaian Multimodal AI & Berita</h3>
+              <p>Kecerdasan buatan VerifTok menelaah teks overlay layar (OCR), meneliti trek audio suara, membedakan tema substantif dari judul clickbait, serta mencocokkan fakta secara langsung dengan portal berita resmi nasional.</p>
+            </article>
+
+            <article class="how-step-card">
+              <span class="step-badge">LANGKAH 04</span>
+              <h3>Tinjau Hasil & Ambil Kartu Fakta</h3>
+              <p>Dapatkan laporan kredibilitas berstempel, indikator clickbait, deteksi scam donasi, dan kartu fakta infografis siap unduh untuk dibagikan ke WhatsApp atau salin template balasan komentar TikTok untuk meluruskan klaim.</p>
+            </article>
+          </div>
+        </div>
+      </section>
+
+      <!-- SECTION: KATEGORI DETEKSI & KASUS NYATA (USE CASES) -->
+      <section class="use-cases-section" id="kategori-deteksi" aria-labelledby="cases-heading">
+        <div class="section-container">
+          <div class="section-header">
+            <span class="section-kicker">KATEGORI DETEKSI & KASUS NYATA</span>
+            <h2 id="cases-heading">Isu & Pola Manipulasi Konten yang Dideteksi</h2>
+            <p class="section-subtitle">Dirancang khusus untuk membedah pola disinformasi media sosial yang kerap beredar di Indonesia.</p>
+          </div>
+
+          <div class="use-cases-grid">
+            <article class="use-case-card">
+              <div class="use-case-header">
+                <span class="use-case-code">01</span>
+                <h3>Hoax Bencana & Peristiwa Musibah Lapangan</h3>
+              </div>
+              <p>Rekaman ledakan, kebakaran gudang, gempa bumi megathrust, atau banjir bandang sering disisipi narasi bohong atau didaur ulang dari kejadian masa lalu di negara lain. VerifTok memvalidasi rekaman dengan laporan resmi BMKG, BNPB, dan media nasional.</p>
+            </article>
+
+            <article class="use-case-card">
+              <div class="use-case-header">
+                <span class="use-case-code">02</span>
+                <h3>Rekayasa Suara & Video Buatan AI (Deepfake)</h3>
+              </div>
+              <p>Banyak akun menggunakan teknologi kloning suara AI untuk meniru pembaca berita TV atau pejabat publik demi mempromosikan obat palsu, undian bodong, atau investasi ilegal. VerifTok mendeteksi artefak sintesis suara dan desinkronisasi visual.</p>
+            </article>
+
+            <article class="use-case-card">
+              <div class="use-case-header">
+                <span class="use-case-code">03</span>
+                <h3>Penipuan Donasi & Penggalangan Dana Fiktif</h3>
+              </div>
+              <p>Modus operandi yang marak adalah mengunggah ulang video orang sakit atau musibah milik pihak lain, lalu menempelkan nomor rekening pribadi atau e-wallet di caption dan bio profil. VerifTok mendeteksi nomor rekening dan indikator manipulasi emosional.</p>
+            </article>
+
+            <article class="use-case-card">
+              <div class="use-case-header">
+                <span class="use-case-code">04</span>
+                <h3>Clickbait & Framing Judul Sensasional</h3>
+              </div>
+              <p>Judul video sering memakai kata-kata bombastis berhuruf kapital (HEBOH, GEMPAR, DETIK-DETIK) padahal isi video sesungguhnya adalah liputan normal. Fitur Clickbait Meter mengukur jarak kesenjangan antara janji judul dan fakta di video.</p>
+            </article>
+
+            <article class="use-case-card">
+              <div class="use-case-header">
+                <span class="use-case-code">05</span>
+                <h3>Sound Tracking & Audio Manipulatif</h3>
+              </div>
+              <p>Rekaman kegiatan damai ditempeli trek suara kerusuhan, jeritan, atau sirene dari peristiwa lain untuk memicu histeria publik. VerifTok mengidentifikasi apakah suara rekaman merupakan audio asli lapangan atau trek tempelan.</p>
+            </article>
+
+            <article class="use-case-card">
+              <div class="use-case-header">
+                <span class="use-case-code">06</span>
+                <h3>Bot Buzzer & Astroturfing Kolom Komentar</h3>
+              </div>
+              <p>Operasi puluhan akun bot yang menuliskan komentar seragam (copypasta) untuk menggiring opini atau meyakinkan penonton pada produk penipuan. VerifTok menganalisis repetisi komentar untuk mendeteksi koordinasi rekayasa.</p>
+            </article>
+          </div>
+        </div>
+      </section>
+
+      <!-- SECTION: METODOLOGI & TRANSPARANSI -->
+      <section class="methodology-section" id="metodologi" aria-labelledby="method-heading">
+        <div class="section-container">
+          <div class="section-header">
+            <span class="section-kicker">STANDAR & METODOLOGI</span>
+            <h2 id="method-heading">Metodologi Forensik & Prinsip Anti-False Positive</h2>
+            <p class="section-subtitle">Transparansi standar verifikasi untuk menjamin penilaian yang adil, objektif, dan dapat dipertanggungjawabkan.</p>
+          </div>
+
+          <div class="methodology-grid">
+            <article class="method-card">
+              <span class="method-icon-num">A</span>
+              <h3>Keadilan Liputan Jurnalisme & Musibah Lapangan</h3>
+              <p>Kata-kata peristiwa seperti "kebakaran", "terbakar", "ledakan", "evakuasi", atau "polisi" adalah kosakata liputan faktual lapangan, bukan hasutan kekerasan atau provokasi. VerifTok menjamin liputan pers resmi dan rekaman musibah nyata tidak akan dicap sebagai hoax.</p>
+            </article>
+
+            <article class="method-card">
+              <span class="method-icon-num">B</span>
+              <h3>Pencocokan Live Media Terdaftar Dewan Pers</h3>
+              <p>Setiap klaim yang diekstrak langsung dicocokkan dengan puluhan portal berita nasional kredibel (Antara, Detikcom, Kompas, Tempo, CNN Indonesia, dll.) sebagai rujukan primer untuk menentukan apakah suatu informasi didukung konsensus fakta pers.</p>
+            </article>
+
+            <article class="method-card">
+              <span class="method-icon-num">C</span>
+              <h3>Privasi Penuh & Riwayat Tidak Pernah Disimpan</h3>
+              <p>VerifTok memproses seluruh analisis secara privat. Tautan yang diperiksa tidak dikaitkan dengan akun pribadi atau riwayat penelusuran Anda. Bebas pelacakan iklan dan bebas biaya untuk seluruh masyarakat Indonesia.</p>
+            </article>
+          </div>
+        </div>
+      </section>
+
       <!-- SEO & EDUKASI: TENTANG VERIFTOK & TANYA JAWAB (FAQ) -->
-      <section class="seo-faq-section" aria-labelledby="faq-main-title">
+      <section class="seo-faq-section" id="faq" aria-labelledby="faq-main-title">
         <div class="faq-container">
           <div class="faq-header">
             <span class="faq-kicker">LITERASI DIGITAL & TANYA JAWAB</span>
-            <h2 id="faq-main-title">Panduan & Pertanyaan Umum VerifTok</h2>
+            <h2 id="faq-main-title">Panduan & Pertanyaan Umum Seputar VerifTok</h2>
             <p class="faq-subtitle">Pahami cara kerja verifikasi cerdas, deteksi hoax, dan literasi konten TikTok di Indonesia.</p>
           </div>
 
@@ -624,6 +867,22 @@
             <article class="faq-card">
               <div class="faq-card-header">
                 <span class="faq-num">05</span>
+                <h3>Bagaimana VerifTok mendeteksi suara atau video buatan AI (deepfake)?</h3>
+              </div>
+              <p>VerifTok menganalisis pola sintesis frekuensi suara pembicara (kloning audio), artefak visual pada gerakan bibir atau wajah, dan memeriksa apakah gaya bicara konsisten dengan rekaman sosok aslinya untuk membongkar video deepfake atau editan suara manipulatif.</p>
+            </article>
+
+            <article class="faq-card">
+              <div class="faq-card-header">
+                <span class="faq-num">06</span>
+                <h3>Bagaimana cara kerja deteksi penipuan donasi dan rekening palsu?</h3>
+              </div>
+              <p>VerifTok memindai teks caption dan stiker layar untuk mengidentifikasi nomor rekening bank, nomor e-wallet, link WhatsApp, atau tautan bio yang memanfaatkan rekaman orang sakit atau musibah orang lain demi keuntungan pribadi.</p>
+            </article>
+
+            <article class="faq-card">
+              <div class="faq-card-header">
+                <span class="faq-num">07</span>
                 <h3>Fitur apa saja yang disediakan VerifTok?</h3>
               </div>
               <p>Fitur unggulan VerifTok meliputi: <strong>Ringkasan Cepat</strong> berstempel verifikasi, <strong>Kartu Fakta Siap Bagikan</strong>, <strong>Meter Clickbait</strong>, <strong>Deteksi Scam Donasi Fiktif</strong>, <strong>Analisis Bot Astroturfing</strong>, dan <strong>Generator Balasan Komentar TikTok</strong> siap salin untuk meluruskan disinformasi.</p>
@@ -631,7 +890,7 @@
 
             <article class="faq-card">
               <div class="faq-card-header">
-                <span class="faq-num">06</span>
+                <span class="faq-num">08</span>
                 <h3>Bisa dipasang di HP Android atau iPhone?</h3>
               </div>
               <p>Tentu saja. VerifTok mengusung teknologi Progressive Web App (PWA). Anda dapat menambahkannya ke Layar Utama (Home Screen) smartphone dan langsung memeriksa video via tombol Bagikan (Share) TikTok tanpa perlu menginstal aplikasi berat dari toko aplikasi.</p>

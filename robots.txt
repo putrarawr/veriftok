@@ -5,10 +5,21 @@ User-agent: *
 Allow: /
 Disallow: /api/
 
+# Google Search & Google AI Overviews (SGE)
 User-agent: Googlebot
 Allow: /
 
 User-agent: Google-Extended
+Allow: /
+
+# Other Leading AI Search Engines
+User-agent: GPTBot
+Allow: /
+
+User-agent: PerplexityBot
+Allow: /
+
+User-agent: ClaudeBot
 Allow: /
 
 User-agent: Bingbot
@@ -18,3 +29,4 @@ User-agent: Applebot
 Allow: /
 
 Sitemap: https://veriftok.vercel.app/sitemap.xml
+Host: https://veriftok.vercel.app
