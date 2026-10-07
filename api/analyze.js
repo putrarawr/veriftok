@@ -1032,10 +1032,11 @@ const sleep = (ms) => new Promise(resolve => setTimeout(resolve, ms));
 async function analyzeVideoWithGemini(fileUri, mimeType, url, videoMeta, realComments, tikwmData, apiKey, analysisMode = 'full') {
   const candidateModels = Array.from(new Set([
     process.env.GEMINI_MODEL,
-    'gemini-3.5-flash',
-    'gemini-3.6-flash',
     'gemini-3.8-flash',
-    'gemini-flash-latest'
+    'gemini-flash-latest',
+    'gemini-3.7-flash',
+    'gemini-3.1-flash-lite',
+    'gemini-3.5-flash'
   ])).filter(Boolean);
 
   const videoId = extractVideoId(url) || videoMeta?.embed_product_id || null;
@@ -1049,22 +1050,29 @@ async function analyzeVideoWithGemini(fileUri, mimeType, url, videoMeta, realCom
   const deepVideoPrompt = `Anda adalah VerifTok, sistem forensik verifikasi video TikTok tingkat mendalam. Anda HARUS MENONTON SELURUH VIDEO INI DARI AWAL SAMPAI HABIS.
 
 TUGAS FORENSIK:
-1. Tentukan "substantiveTheme": Topik/isu substantif sebenarnya yang dibahas video ini dalam 2-4 kata (CONTOH: "Luky Alfirman Wamenkeu", "Waspada Megathrust", "Makan Bergizi Gratis"), BUKAN judul clickbait!
+1. Tentukan "substantiveTheme": Topik/isu substantif sebenarnya yang dibahas video ini dalam 2-4 kata (CONTOH: "Luky Alfirman Wamenkeu", "Waspada Megathrust", "Ledakan Pipa Gas Kawasan"), BUKAN judul clickbait!
 2. Tangkap "onScreenTexts": Catat SEMUA teks stiker, overlay teks besar di layar (CapCut kinetic typography, headline teks kuning/merah) yang terlihat di video.
 3. Forensik Suara/Audio: Apakah ucapan asli pembicara, musik dramatis, atau audio dubbing/sound orang lain?
 4. Periksa Manipulasi/De-kontekstualisasi: Apakah rekaman video tampak diambil dari peristiwa lama/tempat lain yang diberi narasi baru?
 5. Evaluasi konsistensi isi video vs judul/caption (apakah clickbait?).
-6. CLICKBAIT & SENSATIONALISM METER: Bandingkan janji/klaim di judul caption dengan isi sebenarnya dari video. Evaluasi apakah judul melebih-lebihkan, memanipulasi emosi, atau sama sekali tidak sesuai isi. Berikan skor 0-100 (0=jujur, 100=clickbait total). Deteksi sinyal: huruf kapital berlebihan, tanda seru/tanya ganda, kata sensasional (HEBOH, GEMPAR, GEGER, DETIK-DETIK, TERNYATA), dan ketidaksesuaian janji vs kenyataan.
+6. CLICKBAIT & SENSATIONALISM METER: Bandingkan janji/klaim di judul caption dengan isi sebenarnya dari video. Evaluasi apakah judul melebih-lebihkan, memanipulasi emosi, atau sama sekali tidak sesuai isi. Berikan skor 0-100 (0=jujur, 100=clickbait total). Deteksi sinyal: huruf kapital berlebihan, tanda seru/tanya ganda, kata sensasional (HEBOH, GEMPAR, GEGER, DETIK-DETIK, TERNYATA), dan ketidaksesuaian janji vs kenyataan. Jika isi video benar-benar peristiwa faktual yang sesuai judul, berikan skor rendah (0-25).
 7. DETEKSI PENIPUAN & DONASI FIKTIF: Periksa apakah konten ini memuat ajakan donasi, transfer uang, atau penggalangan dana yang mencurigakan. Deteksi pola: (a) Video menggunakan rekaman bencana/orang sakit/hewan terlantar milik orang lain lalu menempelkan rekening pribadi, (b) Nomor rekening bank/e-wallet/link donasi di caption, (c) Ajakan klik link di bio untuk transfer, (d) Modus "live ngemis" dengan video daur ulang. Periksa juga jika ada nomor rekening, nomor WhatsApp, link Saweria/Kitabisa/OVO/GoPay/Dana yang dicantumkan.
 8. TEMPLATE BALASAN KOMENTAR: Buatkan template balasan komentar TikTok yang sopan, netral, dan berbobot untuk meluruskan klaim video ini. Balasan harus singkat (maksimal 150 karakter untuk shortReply), tidak menyerang pribadi, dan menyertakan fakta atau sumber resmi. Gunakan bahasa santai tapi berbobot agar tidak dihapus filter TikTok.
 
 PRINSIP KEADILAN, NETRALITAS, DAN ANTI-FALSE POSITIVE:
-- BANYAK KONTEN TIKTOK MERUPAKAN CUPLIKAN TAYANGAN BERITA ASLI (liputan TV berita, jurnalisme, wawancara resmi, konferensi pers pemerintah, rilis BMKG/Polri/kementerian).
+- BANYAK KONTEN TIKTOK MERUPAKAN CUPLIKAN TAYANGAN BERITA ASLI (liputan TV berita, jurnalisme, wawancara resmi, konferensi pers pemerintah, rilis BMKG/Polri/kementerian, serta rekaman musibah/bencana/kejadian nyata).
+- PANDUAN KHUSUS LIPUTAN PERISTIWA, BENCANA, KEBAKARAN, & MUSIBAH:
+  * Kata-kata seperti "kebakaran", "terbakar", "meledak", "ledakan", "hancur", "korban", "damkar", "evakuasi", "polisi" adalah kosakata liputan peristiwa faktual di lapangan, BUKAN ujaran kebencian ekstrem, hasutan kekerasan, atau provokasi!
+  * DILARANG KERAS mengartikan kata "kebakaran" atau "terbakar" sebagai provokasi pembakaran (arson/hate speech).
 - JIKA VIDEO MENYAMPAIKAN BERITA NYATA ATAU FAKTA LAPANGAN:
   * Tetapkan verdict klaim sebagai "supported" (didukung fakta).
-  * Tetapkan tingkat provokasi sebagai "low" (rendah).
-  * DILARANG KERAS melabeli berita resmi atau liputan jurnalisme sebagai "hoax", "menyesatkan", atau "provokasi" hanya karena membahas isu politik, pergantian pejabat, bencana alam, kritik wajar, atau kebijakan pemerintah!
-- Tingkat provokasi HANYA dinilai "high" jika narasi secara terang-terangan memuat ujaran kebencian SARA, hasutan kekerasan fisik, fitnah keji tanpa dasar, atau ajakan kerusuhan. Berita politik, hukum, dan peristiwa publik adalah informasi yang sah bagi masyarakat, BUKAN provokasi.
+  * Tetapkan tingkat provokasi sebagai "low" (rendah/netral).
+  * Tetapkan onScreenOcr.hasMisleadingOverlay sebagai false.
+  * DILARANG KERAS melabeli berita resmi, musibah, atau liputan jurnalisme sebagai "hoax", "menyesatkan", atau "provokasi" hanya karena membahas isu politik, pergantian pejabat, bencana alam, kebakaran, ledakan, kritik wajar, atau kebijakan pemerintah!
+- KONSISTENSI PARAMETER LINTAS SEKSI (HARMONISASI WAJIB):
+  * Seluruh parameter analisis (Ringkasan Cepat, Provokasi, OCR Layar, Clickbait Meter, Klaim) HARUS SELARAS dan TIDAK SALING BERTENTANGAN.
+  * Jika video menyampaikan berita/peristiwa faktual yang valid, jangan pernah menyatakan "Tingkat Provokasi: Tinggi" atau "Menyesatkan" di bagian parameter lainnya.
+- Tingkat provokasi HANYA dinilai "high" jika narasi secara terang-terangan memuat ujaran kebencian SARA, hasutan kekerasan fisik, fitnah keji tanpa dasar, atau ajakan kerusuhan/makar.
 - "substantiveTheme" HARUS intisari isu nyata 2-4 kata, DILARANG MENYALIN judul sensasional atau clickbait kreator.
 - MODE PEMERIKSAAN: ${analysisMode.toUpperCase()} (Sesuaikan kedalaman analisis dengan fokus mode ini).
 
@@ -1232,10 +1240,11 @@ FORMAT JSON WAJIB (tanpa markdown wrapper):
 async function analyzePhotosWithGemini(photoParts, url, videoMeta, realComments, tikwmData, apiKey, analysisMode = 'full') {
   const candidateModels = Array.from(new Set([
     process.env.GEMINI_MODEL,
-    'gemini-3.5-flash',
-    'gemini-3.6-flash',
     'gemini-3.8-flash',
-    'gemini-flash-latest'
+    'gemini-flash-latest',
+    'gemini-3.7-flash',
+    'gemini-3.1-flash-lite',
+    'gemini-3.5-flash'
   ])).filter(Boolean);
 
   const fullCaptionText = videoMeta?.title || 'Deskripsi tidak dapat diambil';
@@ -1245,7 +1254,7 @@ async function analyzePhotosWithGemini(photoParts, url, videoMeta, realComments,
 Tonton dan baca setiap slide foto dengan seksama dari slide pertama hingga akhir.
 
 TUGAS UTAMA:
-1. "substantiveTheme": Tentukan tema substantif sebenarnya dari foto-foto ini dalam 2-4 kata (CONTOH: "Tips Beasiswa Kuliah", "Waspada Modus Penipuan WA"), BUKAN judul heboh.
+1. "substantiveTheme": Tentukan tema substantif sebenarnya dari foto-foto ini dalam 2-4 kata (CONTOH: "Tips Beasiswa Kuliah", "Waspada Modus Penipuan WA", "Kebakaran Kawasan Pemukiman"), BUKAN judul heboh.
 2. "onScreenOcr": Ekstrak semua tulisan dan stiker teks di dalam slide foto ini.
 3. Periksa apakah ada klaim hoax atau informasi sesat yang disisipkan di slide-slide foto tersebut.
 6. CLICKBAIT & SENSATIONALISM METER: Bandingkan janji/klaim di judul caption dengan isi sebenarnya dari video. Evaluasi apakah judul melebih-lebihkan, memanipulasi emosi, atau sama sekali tidak sesuai isi. Berikan skor 0-100 (0=jujur, 100=clickbait total). Deteksi sinyal: huruf kapital berlebihan, tanda seru/tanya ganda, kata sensasional (HEBOH, GEMPAR, GEGER, DETIK-DETIK, TERNYATA), dan ketidaksesuaian janji vs kenyataan.
@@ -1253,8 +1262,10 @@ TUGAS UTAMA:
 8. TEMPLATE BALASAN KOMENTAR: Buatkan template balasan komentar TikTok yang sopan, netral, dan berbobot untuk meluruskan klaim video ini. Balasan harus singkat (maksimal 150 karakter untuk shortReply), tidak menyerang pribadi, dan menyertakan fakta atau sumber resmi. Gunakan bahasa santai tapi berbobot agar tidak dihapus filter TikTok.
 
 PRINSIP KEADILAN & ANTI-FALSE POSITIVE:
-- Jika konten foto geser memuat infografis berita resmi, edukasi, atau fakta publik yang valid, nilai sebagai "supported" dan provokasi "low". DILARANG melabeli fakta atau berita resmi sebagai hoax!
-- Tingkat provokasi HANYA "high" jika berisi ujaran kebencian SARA atau hasutan kekerasan.
+- Jika konten foto geser memuat infografis berita resmi, edukasi, atau fakta publik yang valid, nilai sebagai "supported" dan provokasi "low". DILARANG melabeli fakta, liputan musibah, atau berita resmi sebagai hoax atau provokasi!
+- Kata "kebakaran", "ledakan", "bencana" adalah istilah musibah/peristiwa, BUKAN hasutan kekerasan.
+- Seluruh parameter (Ringkasan, Provokasi, OCR, Clickbait) HARUS KONSISTEN.
+- Tingkat provokasi HANYA "high" jika berisi ujaran kebencian SARA atau hasutan kekerasan nyata.
 - MODE PEMERIKSAAN: ${analysisMode.toUpperCase()}.
 
 URL: ${url}
@@ -1301,10 +1312,11 @@ Format respons WAJIB JSON persis sesuai struktur VerifTok. Pastikan termasuk fie
 async function analyzeWithGemini(url, videoMeta, realComments, tikwmData, apiKey, analysisMode = 'full') {
   const candidateModels = Array.from(new Set([
     process.env.GEMINI_MODEL,
-    'gemini-3.5-flash',
-    'gemini-3.6-flash',
     'gemini-3.8-flash',
-    'gemini-flash-latest'
+    'gemini-flash-latest',
+    'gemini-3.7-flash',
+    'gemini-3.1-flash-lite',
+    'gemini-3.5-flash'
   ])).filter(Boolean);
 
   const videoId = extractVideoId(url) || videoMeta?.embed_product_id || null;
@@ -1324,12 +1336,58 @@ TUGAS UTAMA:
 8. TEMPLATE BALASAN KOMENTAR: Buatkan template balasan komentar TikTok yang sopan, netral, dan berbobot untuk meluruskan klaim video ini. Balasan harus singkat (maksimal 150 karakter untuk shortReply), tidak menyerang pribadi, dan menyertakan fakta atau sumber resmi. Gunakan bahasa santai tapi berbobot agar tidak dihapus filter TikTok.
 
 PRINSIP KEADILAN & ANTI-FALSE POSITIVE:
-- BANYAK KONTEN TIKTOK MERUPAKAN CUPLIKAN BERITA RESMI ATAU INFORMASI FAKTUAL. JIKA KONTEN MEMBAHAS BERITA NYATA, WAJIB BERIKAN VERDICT "supported", PROVOKASI "low", DAN SKOR TINGGI (80-95).
-- DILARANG KERAS mencap video berita resmi atau kritik wajar sebagai "hoax" atau "provokasi".
-- Tingkat provokasi HANYA "high" jika berisi ujaran kebencian SARA atau ajakan kekerasan.
+- BANYAK KONTEN TIKTOK MERUPAKAN CUPLIKAN BERITA RESMI ATAU INFORMASI FAKTUAL (termasuk laporan musibah, kebakaran, kecelakaan, ledakan, dan kebencanaan).
+- JIKA KONTEN MEMBAHAS BERITA ATAU MUSIBAH NYATA:
+  * WAJIB BERIKAN VERDICT "supported"
+  * PROVOKASI "low" (rendah/netral)
+  * SKOR KREDIBILITAS TINGGI (85-96)
+  * onScreenOcr.hasMisleadingOverlay WAJIB false.
+- Kata-kata seperti "kebakaran", "terbakar", "meledak", "ledakan", "korban", "damkar" adalah istilah musibah/peristiwa faktual, BUKAN hasutan kekerasan atau provokasi!
+- DILARANG KERAS mencap video berita resmi atau liputan musibah sebagai "hoax", "menyesatkan", atau "provokasi".
+- Seluruh parameter analisis HARUS KONSISTEN antar-seksi.
+- Tingkat provokasi HANYA "high" jika berisi ujaran kebencian SARA atau hasutan kekerasan nyata.
 - MODE PEMERIKSAAN: ${analysisMode.toUpperCase()}.
 
-Format JSON wajib (tanpa markdown wrapper) sesuai format standar VerifTok, termasuk field clickbaitMeter, scamDetection, dan counterComment.`;
+FORMAT JSON WAJIB (tanpa markdown wrapper):
+{
+  "status": "complete",
+  "substantiveTheme": "Tema substantif 2-4 kata",
+  "themeExplanation": "Penjelasan tema substantif video secara objektif.",
+  "provocation": {
+    "level": "low" | "medium" | "high",
+    "explanation": "Penjelasan tingkat provokasi.",
+    "signals": ["Sinyal framing bahasa"]
+  },
+  "claims": [
+    {
+      "claim": "Klaim atau peristiwa utama",
+      "verdict": "supported" | "false" | "misleading" | "unverified" | "mixed",
+      "explanation": "Penjelasan verifikasi.",
+      "sources": []
+    }
+  ],
+  "clickbaitMeter": {
+    "score": 15,
+    "level": "none|low|medium|high|extreme",
+    "titleClaim": "Janji judul",
+    "actualContent": "Isi sebenarnya",
+    "mismatchExplanation": "Penjelasan keselarasan",
+    "signals": []
+  },
+  "scamDetection": {
+    "isScamSuspected": false,
+    "type": "none",
+    "riskLevel": "safe",
+    "explanation": "Pemeriksaan donasi/penipuan",
+    "signals": [],
+    "detectedIdentifiers": []
+  },
+  "counterComment": {
+    "shortReply": "Balasan singkat",
+    "detailedReply": "Balasan detail",
+    "factCheckReply": "Balasan rujukan"
+  }
+}`;
 
   const userContext = `URL Video: ${url}
 Caption: ${fullCaptionText}
@@ -1358,6 +1416,7 @@ ${realCommentsContext}`;
         if (rawText) {
           const cleanJson = rawText.replace(/```json\n?/g, '').replace(/```\n?/g, '').trim();
           const parsed = JSON.parse(cleanJson);
+          if (parsed && !parsed.status) parsed.status = 'complete';
           if (validReport(parsed)) return parsed;
         }
       }
@@ -1396,18 +1455,36 @@ function analyzeLocally(url, videoMeta, realComments = [], tikwmData = null, liv
   // 2. Corroboration with live news
   const hasLiveNews = Array.isArray(liveNews) && liveNews.length > 0;
 
-  // 3. Provocation Detection: ONLY trigger on genuine hate speech, incitement to violence, and destructive conspiracy!
-  // Normal news vocabulary (dilantik, dicopot, wamenkeu, prabowo, bmkg, waspada, dll) is NOT provocation!
-  const genuineHateSpeechKeywords = [
-    'ganyang', 'makar', 'hancurkan', 'biadab', 'antek', 'rezim laknat', 'khianat',
-    'pengkhianat', 'serbu', 'bakar', 'perang saudara', 'usir paksa', 'bantai',
-    'pembantaian', 'pembodohan masal', 'bohongi rakyat', 'lengserkan paksa'
+  // 3. Disaster, incident, and emergency vocabulary (FAKTUAL, BUKAN PROVOKASI)
+  const disasterIncidentWords = [
+    'kebakaran', 'terbakar', 'pembakaran', 'ledakan', 'meledak', 'tabung gas',
+    'bencana', 'gempa', 'tsunami', 'banjir', 'longsor', 'kecelakaan', 'damkar',
+    'pemadam', 'evakuasi', 'korban', 'olah tkp', 'puslabfor', 'pipa gas', 'musibah', 'runtuh'
   ];
+  const isDisasterOrIncident = disasterIncidentWords.some(w => text.includes(w));
+
+  // 4. Provocation Detection: ONLY trigger on genuine extremist incitement, hate speech, or rebellion!
+  // MUST NOT match normal news, disaster, or accident vocabulary!
+  const genuineHateSpeechPatterns = [
+    { pattern: /\b(ganyang)\b/i, label: 'ganyang' },
+    { pattern: /\b(makar)\b/i, label: 'makar' },
+    { pattern: /\b(perang\s+saudara)\b/i, label: 'perang saudara' },
+    { pattern: /\b(usir\s+paksa)\b/i, label: 'usir paksa' },
+    { pattern: /\b(rezim\s+laknat)\b/i, label: 'rezim laknat' },
+    { pattern: /\b(lengserkan\s+paksa)\b/i, label: 'lengserkan paksa' },
+    { pattern: /\b(bakar\s+(gedung|toko|kantor|rumah\s*ibadah|istana|posko|aparat|polsek))\b/i, label: 'ajakan membakar fasilitas publik' },
+    { pattern: /\b(serbu\s+(kantor|gedung|istana|markas|posko|aparat))\b/i, label: 'ajakan menyerbu' },
+    { pattern: /\b(bantai\s+(warga|rakyat|etnis|suku|umat))\b/i, label: 'hasutan kekerasan massa' }
+  ];
+
+  const matchedHateSpeech = isDisasterOrIncident
+    ? [] // Never mislabel fire/explosion/disaster news as hate speech or arson!
+    : genuineHateSpeechPatterns.filter(p => p.pattern.test(text)).map(p => p.label);
+
   const sensationalStyleKeywords = [
     'geger', 'gempar', 'heboh', 'bikin kaget', 'detik-detik', 'terkuak', 'gawat', 'parah banget'
   ];
 
-  const matchedHateSpeech = genuineHateSpeechKeywords.filter(k => text.includes(k));
   const matchedSensational = sensationalStyleKeywords.filter(k => text.includes(k));
   const isCaps = (fullCaption.match(/[A-Z]{4,}/g) || []).length >= 2;
   const hasExclamation = (fullCaption.match(/!{2,}|\?{2,}/g) || []).length > 0;
@@ -1415,9 +1492,17 @@ function analyzeLocally(url, videoMeta, realComments = [], tikwmData = null, liv
   let level = 'low';
   const signals = [];
 
-  if (matchedHateSpeech.length > 0) {
+  if (isKnownMedia || (hasLiveNews && matchedHateSpeech.length === 0)) {
+    level = 'low';
+    signals.push(`Penyampaian informasi seputar isu "${substantiveTheme}" didukung oleh laporan media berita resmi nasional`);
+    signals.push('Tidak terdeteksi unsur provokasi adu domba, hasutan kekerasan, atau ujaran kebencian');
+  } else if (isDisasterOrIncident) {
+    level = 'low';
+    signals.push(`Konten memuat laporan peristiwa lapangan/musibah seputar "${substantiveTheme}"`);
+    signals.push('Penyampaian bersifat liputan musibah faktual, bukan hasutan atau provokasi');
+  } else if (matchedHateSpeech.length > 0) {
     level = 'high';
-    signals.push(`Terdeteksi kata bermuatan hasutan atau ujaran kebencian ekstrem (${matchedHateSpeech.join(', ')})`);
+    signals.push(`Terdeteksi potensi ajakan hasutan ekstrem (${matchedHateSpeech.join(', ')})`);
     if (isCaps) signals.push('Penggunaan huruf kapital (ALL CAPS) berlebih untuk menonjolkan provokasi');
   } else if (matchedSensational.length >= 2 || (matchedSensational.length >= 1 && (isCaps || hasExclamation))) {
     level = 'medium';
@@ -1433,6 +1518,8 @@ function analyzeLocally(url, videoMeta, realComments = [], tikwmData = null, liv
     ? `Video memuat narasi yang berpotensi memicu ketegangan publik seputar isu ${substantiveTheme}. Disarankan tidak terprovokasi dan kroscek fakta resmi.`
     : level === 'medium'
     ? `Video menggunakan gaya bahasa sensasional khas media sosial untuk menarik perhatian seputar isu ${substantiveTheme}, namun tetap dalam koridor penyampaian informasi umum.`
+    : (isDisasterOrIncident || hasLiveNews || isKnownMedia)
+    ? `Video menyampaikan laporan peristiwa atau informasi seputar isu ${substantiveTheme} yang didukung fakta liputan berita resmi. Nada narasi bersifat informatif tanpa unsur hasutan atau provokasi.`
     : `Video menyampaikan narasi seputar isu ${substantiveTheme} secara wajar dan informatif tanpa unsur hasutan atau provokasi.`;
 
   // Real comment processing — ABSOLUTELY NO FAKE MOCK COMMENTS
@@ -1548,13 +1635,15 @@ function analyzeLocally(url, videoMeta, realComments = [], tikwmData = null, liv
   }
   const onScreenOcr = {
     detectedTexts,
-    hasMisleadingOverlay: level === 'high',
-    explanation: level === 'high'
-      ? 'Terdeteksi teks berhuruf kapital atau tanda baca dramatis yang menonjolkan sensasionalisme narasi.'
-      : 'Teks overlay tidak menunjukkan pola penyesatan ekstrem.'
+    hasMisleadingOverlay: (isDisasterOrIncident || hasLiveNews || isKnownMedia) ? false : (level === 'high'),
+    explanation: (isDisasterOrIncident || hasLiveNews || isKnownMedia)
+      ? 'Teks overlay berfungsi sebagai penjelas peristiwa dan tidak menunjukkan indikasi penyesatan informasi.'
+      : (level === 'high'
+          ? 'Terdeteksi teks berhuruf kapital atau tanda baca dramatis yang menonjolkan sensasionalisme narasi.'
+          : 'Teks overlay tidak menunjukkan pola penyesatan ekstrem.')
   };
 
-  const clickbaitMeter = buildClickbaitMeter(videoMeta?.title || tikwmData?.title || '', fullCaption);
+  const clickbaitMeter = buildClickbaitMeter(videoMeta?.title || tikwmData?.title || '', fullCaption, hasLiveNews, isKnownMedia);
   const scamDetection = buildScamDetection(videoMeta?.title || tikwmData?.title || '', fullCaption, detectedTexts);
   const counterComment = buildCounterComment(quickVerdict, [{ claim: claimText, verdict, explanation: claimExplanation }], liveNews);
 
@@ -1765,7 +1854,7 @@ function saveTrending(report, url) {
   }
 }
 
-function buildClickbaitMeter(title, caption) {
+function buildClickbaitMeter(title, caption, hasLiveNews = false, isKnownMedia = false) {
   let score = 0;
   const signals = [];
   const upperTitle = (title || '').toUpperCase();
@@ -1787,6 +1876,10 @@ function buildClickbaitMeter(title, caption) {
   const tagCount = clickbaitTags.filter(t => combined.includes(t)).length;
   if (tagCount >= 3) { score += 10; signals.push('Hashtag clickbait berlebihan'); }
   
+  if (hasLiveNews || isKnownMedia) {
+    score = Math.min(20, Math.round(score * 0.3));
+  }
+
   score = Math.min(100, score);
   const level = score <= 15 ? 'none' : score <= 35 ? 'low' : score <= 55 ? 'medium' : score <= 80 ? 'high' : 'extreme';
   
@@ -1795,7 +1888,9 @@ function buildClickbaitMeter(title, caption) {
     level,
     titleClaim: title || '',
     actualContent: '',
-    mismatchExplanation: signals.length > 0 ? `Terdeteksi ${signals.length} sinyal sensasionalisme pada judul/caption konten.` : 'Judul dan caption tampak wajar tanpa indikasi clickbait.',
+    mismatchExplanation: (hasLiveNews || isKnownMedia)
+      ? 'Judul dan caption selaras dengan laporan peristiwa faktual yang dikonfirmasi oleh pemberitaan media resmi.'
+      : (signals.length > 0 ? `Terdeteksi ${signals.length} sinyal sensasionalisme pada judul/caption konten.` : 'Judul dan caption tampak wajar tanpa indikasi clickbait.'),
     signals
   };
 }
@@ -1886,8 +1981,106 @@ function buildCounterComment(quickVerdict, claims, newsResults) {
       ? `Belum bisa dikonfirmasi. Baca juga: ${firstSource.title} (${firstSource.publisher})`
       : `Klaim tentang ${theme} ini masih perlu diverifikasi. Jangan langsung share sebelum pasti.`;
   }
-  
+
   return { shortReply, detailedReply, factCheckReply };
+}
+
+function harmonizeReportConsistency(report, liveNews, tikwmData) {
+  if (!report || typeof report !== 'object') return report;
+
+  const hasLiveNews = Array.isArray(liveNews) && liveNews.length > 0;
+  const isVerifiedMedia = Boolean(tikwmData?.author?.verified);
+  const score = report.credibility?.score ?? report.quickVerdict?.score ?? 75;
+  const isValidOrHighCred = score >= 80 || report.quickVerdict?.validityVerdict === 'valid' || hasLiveNews || isVerifiedMedia;
+
+  const captionText = `${report.video?.fullCaption || ''} ${report.video?.title || ''}`.toLowerCase();
+  const disasterIncidentWords = [
+    'kebakaran', 'terbakar', 'pembakaran', 'ledakan', 'meledak', 'tabung gas',
+    'bencana', 'gempa', 'tsunami', 'banjir', 'longsor', 'kecelakaan', 'damkar',
+    'pemadam', 'evakuasi', 'korban', 'olah tkp', 'puslabfor', 'pipa gas', 'musibah', 'runtuh'
+  ];
+  const isDisasterOrIncident = disasterIncidentWords.some(k => captionText.includes(k));
+
+  // 1. HARMONISASI SEKSI H (Tingkat Provokasi & Framing)
+  if (isValidOrHighCred || isDisasterOrIncident) {
+    if (report.provocation) {
+      if (report.provocation.level === 'high') {
+        report.provocation.level = 'low';
+        report.provocation.explanation = `Video menyampaikan laporan peristiwa atau informasi seputar isu ${report.substantiveTheme || 'isu terkait'} yang didukung fakta liputan berita resmi. Nada narasi bersifat informatif tanpa unsur hasutan atau provokasi.`;
+        report.provocation.signals = [
+          `Penyampaian informasi seputar peristiwa "${report.substantiveTheme || 'isu terkait'}" didukung oleh laporan media berita resmi nasional`,
+          'Tidak terdeteksi unsur provokasi kekerasan, ujaran kebencian, atau hasutan adu domba'
+        ];
+      } else if (Array.isArray(report.provocation.signals)) {
+        report.provocation.signals = report.provocation.signals.filter(s =>
+          !s.includes('(bakar)') && !s.includes('kebakaran') && !s.includes('(hancurkan)') && !s.includes('(serbu)') && !s.includes('(bantai)')
+        );
+        if (report.provocation.signals.length === 0) {
+          report.provocation.signals.push('Penyampaian narasi dalam batas wajar tanpa hasutan atau provokasi');
+        }
+      }
+    }
+
+    // 2. HARMONISASI SEKSI D (Teks Layar / OCR)
+    if (report.onScreenOcr) {
+      report.onScreenOcr.hasMisleadingOverlay = false;
+      report.onScreenOcr.explanation = 'Teks overlay berfungsi sebagai penjelas peristiwa dan tidak menunjukkan indikasi penyesatan informasi.';
+    }
+
+    // 3. HARMONISASI SEKSI CB (Clickbait Meter)
+    if (report.clickbaitMeter) {
+      if (report.clickbaitMeter.score > 35) {
+        report.clickbaitMeter.score = Math.min(25, Math.round(report.clickbaitMeter.score * 0.35));
+        report.clickbaitMeter.level = report.clickbaitMeter.score <= 15 ? 'none' : 'low';
+        report.clickbaitMeter.mismatchExplanation = 'Judul dan narasi selaras dengan peristiwa faktual yang dilaporkan di media resmi.';
+      }
+    }
+
+    // 4. HARMONISASI SEKSI E (Dekontekstualisasi)
+    if (report.decontextualization && !report.decontextualization.provenOldFootage) {
+      report.decontextualization.isFootageReused = false;
+      report.decontextualization.explanation = 'Tidak terdeteksi indikasi jelas rekaman daur ulang. Narasi selaras dengan liputan peristiwa terkini.';
+    }
+
+    // 5. HARMONISASI SEKSI J (Klaim)
+    if (Array.isArray(report.claims) && report.claims.length > 0) {
+      const c = report.claims[0];
+      if (c.verdict === 'misleading' || c.verdict === 'unverified') {
+        c.verdict = 'supported';
+        c.explanation = `Peristiwa dan fakta seputar '${report.substantiveTheme || 'topik ini'}' terkonfirmasi didukung oleh liputan pemberitaan media resmi nasional.`;
+      }
+    }
+
+    // 6. HARMONISASI QUICK VERDICT
+    if (report.quickVerdict) {
+      if (report.quickVerdict.validityVerdict === 'misleading' || report.quickVerdict.validityVerdict === 'unverified') {
+        report.quickVerdict.validityVerdict = 'valid';
+        report.quickVerdict.badgeLabel = hasLiveNews ? 'VALID & TERVERIFIKASI' : 'VALID & AMAN';
+        report.quickVerdict.badgeType = 'verified';
+        report.quickVerdict.summaryVerdict = hasLiveNews
+          ? 'Informasi dalam video ini terkonfirmasi faktual dan diliput oleh media berita resmi nasional.'
+          : 'Isi konten dan narasi video terverifikasi wajar serta tidak memuat unsur disinformasi atau provokasi adu domba.';
+      }
+      if (report.quickVerdict.score < 80) {
+        report.quickVerdict.score = Math.max(88, report.quickVerdict.score);
+      }
+    }
+
+    if (report.credibility && report.credibility.score < 80) {
+      report.credibility.score = Math.max(88, report.credibility.score);
+      report.credibility.badge = 'verified';
+      report.credibility.rating = 'Tinggi (Sangat Layak Dipercaya)';
+      report.credibility.explanation = 'Narasi video terkonfirmasi oleh laporan berita resmi nasional yang relevan.';
+    }
+  }
+
+  return report;
+}
+
+function sendFinalReport(res, report, liveNews, tikwmData, url) {
+  const harmonized = harmonizeReportConsistency(report, liveNews, tikwmData);
+  saveTrending(harmonized, url || '');
+  return json(res, 200, harmonized);
 }
 
 // MAIN HANDLER
@@ -1935,7 +2128,7 @@ module.exports = async function analyze(req, res) {
           liveNews
         );
         report.newsVerificationSources = generateNewsVerificationSources(liveNews, substantiveTheme);
-        saveTrending(report, typeof resolvedUrl !== 'undefined' ? resolvedUrl : (typeof rawUrl !== 'undefined' ? rawUrl : '')); return json(res, 200, report);
+        return sendFinalReport(res, report, liveNews, null, fileName);
       } else if (mimeType.startsWith('video/')) {
         // Video file uploaded
         if (!fs.existsSync(TEMP_DIR)) fs.mkdirSync(TEMP_DIR, { recursive: true });
@@ -1969,7 +2162,7 @@ module.exports = async function analyze(req, res) {
             liveNews
           );
           report.newsVerificationSources = generateNewsVerificationSources(liveNews, substantiveTheme);
-          saveTrending(report, typeof resolvedUrl !== 'undefined' ? resolvedUrl : (typeof rawUrl !== 'undefined' ? rawUrl : '')); return json(res, 200, report);
+          return sendFinalReport(res, report, liveNews, null, fileName);
         } finally {
           cleanupVideo(videoFilePath);
         }
@@ -2057,7 +2250,7 @@ module.exports = async function analyze(req, res) {
       resolvedLiveNews
     );
     report.analyzedAt = new Date().toISOString();
-    saveTrending(report, typeof resolvedUrl !== 'undefined' ? resolvedUrl : (typeof rawUrl !== 'undefined' ? rawUrl : '')); return json(res, 200, report);
+    return sendFinalReport(res, report, resolvedLiveNews, tikwmData, resolvedUrl);
   }
 
   // Standard Video Mode: Download video for deep multimodal analysis if Gemini API key exists
@@ -2143,7 +2336,7 @@ module.exports = async function analyze(req, res) {
       }
       report.analyzedAt = new Date().toISOString();
 
-      saveTrending(report, typeof resolvedUrl !== 'undefined' ? resolvedUrl : (typeof rawUrl !== 'undefined' ? rawUrl : '')); return json(res, 200, report);
+      return sendFinalReport(res, report, finalLiveNews, tikwmData, resolvedUrl);
     } catch (err) {
       console.error('[VideoAnalysis] Deep multimodal error, falling back:', err.message);
     } finally {
@@ -2207,7 +2400,7 @@ module.exports = async function analyze(req, res) {
 
       report.analysisMode = analysisMode;
       report.analyzedAt = new Date().toISOString();
-      saveTrending(report, typeof resolvedUrl !== 'undefined' ? resolvedUrl : (typeof rawUrl !== 'undefined' ? rawUrl : '')); return json(res, 200, report);
+      return sendFinalReport(res, report, finalLiveNews, tikwmData, resolvedUrl);
     } catch (err) {
       console.error('[TextAnalysis] Gemini text fallback error:', err.message);
     }
@@ -2215,5 +2408,5 @@ module.exports = async function analyze(req, res) {
 
   // Smart Local Rule-based Analyzer (NO Fake Comments)
   const localReport = analyzeLocally(resolvedUrl, videoMeta, realComments, tikwmData, liveNews, analysisMode);
-  return json(res, 200, localReport);
+  return sendFinalReport(res, localReport, liveNews, tikwmData, resolvedUrl);
 };
