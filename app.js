@@ -1641,11 +1641,13 @@ async function doUrlAnalysis() {
 
   const progressSteps = [
     { delay: 400, text: 'Mengambil metadata dan audio trek TikTok...' },
-    { delay: 1200, text: 'Mendeteksi format konten (video / foto slide)...' },
-    { delay: 2200, text: 'AI menelaah isi visual dan transkrip audio...' },
-    { delay: 3600, text: 'Mengekstrak tema substantif & mencari berita resmi live...' },
-    { delay: 5200, text: 'Menyaring komentar publik & mendeteksi bot astroturfing...' },
-    { delay: 7000, text: 'Menyusun laporan ringkasan cepat dan forensik lengkap...' },
+    { delay: 1400, text: 'Mendeteksi format konten (video / foto slide)...' },
+    { delay: 2800, text: 'AI menelaah isi visual dan transkrip audio...' },
+    { delay: 4500, text: 'Mengekstrak tema substantif & mencari berita resmi live...' },
+    { delay: 6800, text: 'Menyaring komentar publik & mendeteksi bot astroturfing...' },
+    { delay: 9500, text: 'Mengkorelasikan klaim dengan berita media resmi...' },
+    { delay: 13500, text: 'Menyelesaikan verifikasi silang & analisis komprehensif...' },
+    { delay: 18000, text: 'Memformat kartu verifikasi dan ringkasan forensik...' }
   ];
   const progressTimers = progressSteps.map(step =>
     setTimeout(() => {
@@ -1656,10 +1658,14 @@ async function doUrlAnalysis() {
 
   setLoading(true, false);
 
+  const fetchController = new AbortController();
+  const fetchTimeout = setTimeout(() => fetchController.abort(), 28000);
+
   try {
     const response = await fetch('/api/analyze', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json', Accept: 'application/json' },
+      signal: fetchController.signal,
       body: JSON.stringify({ url: validUrl, mode: selectedMode }),
     });
     const result = await response.json().catch(() => ({}));
@@ -1681,8 +1687,13 @@ async function doUrlAnalysis() {
     }
   } catch (err) {
     console.error('Submit error:', err);
-    showState('error', 'Tidak Dapat Terhubung', 'Periksa koneksi internetmu lalu coba lagi.', true);
+    if (err.name === 'AbortError') {
+      showState('error', 'Waktu Analisis Terlampaui', 'Proses verifikasi membutuhkan waktu lebih lama dari biasanya. Coba gunakan mode "Cek Hoax" atau "Lacak Berita" untuk respon kilat, atau periksa kembali tautan Anda.', true);
+    } else {
+      showState('error', 'Tidak Dapat Terhubung', 'Periksa koneksi internetmu lalu coba lagi.', true);
+    }
   } finally {
+    clearTimeout(fetchTimeout);
     progressTimers.forEach(clearTimeout);
     setLoading(false, false);
   }
@@ -1700,9 +1711,10 @@ async function doFileAnalysis() {
 
   const fileSteps = [
     { delay: 350, text: 'Membaca berkas dan mengunggah ke mesin forensik...' },
-    { delay: 1200, text: 'AI menelaah isi visual, mendeteksi stiker teks OCR...' },
-    { delay: 2400, text: 'Mengekstrak tema substantif & menelusuri fakta lapangan...' },
-    { delay: 4000, text: 'Menyusun laporan ringkasan dan kartu fakta berstempel...' },
+    { delay: 1400, text: 'AI menelaah isi visual, mendeteksi stiker teks OCR...' },
+    { delay: 2800, text: 'Mengekstrak tema substantif & menelusuri fakta lapangan...' },
+    { delay: 5000, text: 'Menyusun laporan ringkasan dan kartu fakta berstempel...' },
+    { delay: 9000, text: 'Menyelesaikan sinkronisasi data forensik...' }
   ];
   const fileTimers = fileSteps.map(step =>
     setTimeout(() => {
@@ -1711,9 +1723,13 @@ async function doFileAnalysis() {
     }, step.delay)
   );
 
+  const fileController = new AbortController();
+  const fileTimeout = setTimeout(() => fileController.abort(), 35000);
+
   try {
     const reader = new FileReader();
     reader.onerror = () => {
+      clearTimeout(fileTimeout);
       fileTimers.forEach(clearTimeout);
       showState('error', 'Gagal Membaca Berkas', 'Berkas tidak dapat dibaca dari perangkat Anda.', true);
       setLoading(false, true);
@@ -1725,6 +1741,7 @@ async function doFileAnalysis() {
         const response = await fetch('/api/analyze', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json', Accept: 'application/json' },
+          signal: fileController.signal,
           body: JSON.stringify({
             fileBase64: base64Data,
             mimeType: selectedUploadFile.type,
@@ -1740,8 +1757,13 @@ async function doFileAnalysis() {
 
         showState('error', 'Pemeriksaan Gagal', result.message || 'Terjadi kesalahan saat memeriksa berkas.', true);
       } catch (err) {
-        showState('error', 'Tidak Dapat Terhubung', 'Gagal mengirim berkas ke server. Pastikan ukuran di bawah 45MB.', true);
+        if (err.name === 'AbortError') {
+          showState('error', 'Waktu Unggah Habis', 'Proses memakan waktu terlalu lama. Pastikan berkas berukuran wajar (di bawah 45MB) dan coba lagi.', true);
+        } else {
+          showState('error', 'Tidak Dapat Terhubung', 'Gagal mengirim berkas ke server. Pastikan ukuran di bawah 45MB.', true);
+        }
       } finally {
+        clearTimeout(fileTimeout);
         fileTimers.forEach(clearTimeout);
         setLoading(false, true);
       }
@@ -1749,6 +1771,7 @@ async function doFileAnalysis() {
 
     reader.readAsDataURL(selectedUploadFile);
   } catch (err) {
+    clearTimeout(fileTimeout);
     fileTimers.forEach(clearTimeout);
     showState('error', 'Kesalahan Berkas', err.message, true);
     setLoading(false, true);

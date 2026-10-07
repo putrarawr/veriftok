@@ -1,0 +1,20 @@
+# VerifTok Robots Configuration
+# https://veriftok.vercel.app/
+
+User-agent: *
+Allow: /
+Disallow: /api/
+
+User-agent: Googlebot
+Allow: /
+
+User-agent: Google-Extended
+Allow: /
+
+User-agent: Bingbot
+Allow: /
+
+User-agent: Applebot
+Allow: /
+
+Sitemap: https://veriftok.vercel.app/sitemap.xml

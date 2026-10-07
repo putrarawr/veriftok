@@ -113,7 +113,7 @@ async function resolveTikTokUrl(inputUrl) {
     const parsed = new URL(inputUrl);
     if (['vt.tiktok.com', 'vm.tiktok.com', 'm.tiktok.com'].includes(parsed.hostname.toLowerCase())) {
       const controller = new AbortController();
-      const t = setTimeout(() => controller.abort(), 8000);
+      const t = setTimeout(() => controller.abort(), 3500);
       try {
         const res = await fetch(inputUrl, {
           method: 'GET',
@@ -140,7 +140,7 @@ async function fetchTikTokOembed(resolvedUrl) {
   try {
     const oembedUrl = `https://www.tiktok.com/oembed?url=${encodeURIComponent(resolvedUrl)}`;
     const controller = new AbortController();
-    const t = setTimeout(() => controller.abort(), 8000);
+    const t = setTimeout(() => controller.abort(), 3500);
     try {
       const res = await fetch(oembedUrl, {
         signal: controller.signal,
@@ -168,7 +168,7 @@ async function fetchTikwmData(resolvedUrl) {
     params.append('hd', '0');
 
     const controller = new AbortController();
-    const t = setTimeout(() => controller.abort(), 9000);
+    const t = setTimeout(() => controller.abort(), 4000);
     try {
       const res = await fetch('https://www.tikwm.com/api/', {
         method: 'POST',
@@ -237,7 +237,7 @@ async function fetchRealTikTokComments(resolvedUrl) {
   try {
     const endpoint = `https://www.tikwm.com/api/comment/list?url=${encodeURIComponent(resolvedUrl)}&count=50`;
     const controller = new AbortController();
-    const t = setTimeout(() => controller.abort(), 9000);
+    const t = setTimeout(() => controller.abort(), 3500);
     try {
       const res = await fetch(endpoint, {
         signal: controller.signal,
@@ -267,7 +267,7 @@ async function fetchRealTikTokComments(resolvedUrl) {
   return [];
 }
 
-// Download TikTok video to temp file
+// Download TikTok video to temp file with fast 4.5s cap
 async function downloadTikTokVideo(downloadUrl) {
   if (!downloadUrl) return null;
   try {
@@ -279,7 +279,7 @@ async function downloadTikTokVideo(downloadUrl) {
     const videoFilePath = path.join(TEMP_DIR, videoFileName);
 
     const dlController = new AbortController();
-    const dlTimeout = setTimeout(() => dlController.abort(), 12000);
+    const dlTimeout = setTimeout(() => dlController.abort(), 4500);
     try {
       const dlRes = await fetch(downloadUrl, {
         signal: dlController.signal,
@@ -320,21 +320,20 @@ async function downloadTikTokVideo(downloadUrl) {
       clearTimeout(dlTimeout);
     }
   } catch (err) {
-    console.error('[VideoDownload] Failed:', err.message);
+    console.error('[VideoDownload] Failed or timed out:', err.message);
     return null;
   }
 }
 
-// Download up to 3 photos from TikTok photo mode for multimodal analysis
+// Download up to 3 photos concurrently from TikTok photo mode for multimodal analysis
 async function downloadTikTokPhotos(imageUrls) {
   if (!Array.isArray(imageUrls) || imageUrls.length === 0) return [];
   const selected = imageUrls.slice(0, 3);
-  const parts = [];
 
-  for (const url of selected) {
+  const downloadPromises = selected.map(async (url) => {
     try {
       const controller = new AbortController();
-      const t = setTimeout(() => controller.abort(), 8000);
+      const t = setTimeout(() => controller.abort(), 3000);
       try {
         const res = await fetch(url, {
           signal: controller.signal,
@@ -342,12 +341,12 @@ async function downloadTikTokPhotos(imageUrls) {
         });
         if (res.ok) {
           const buf = Buffer.from(await res.arrayBuffer());
-          parts.push({
+          return {
             inlineData: {
               mimeType: 'image/jpeg',
               data: buf.toString('base64')
             }
-          });
+          };
         }
       } finally {
         clearTimeout(t);
@@ -355,30 +354,41 @@ async function downloadTikTokPhotos(imageUrls) {
     } catch {
       // Ignore individual image download error
     }
-  }
-  return parts;
+    return null;
+  });
+
+  const results = await Promise.all(downloadPromises);
+  return results.filter(Boolean);
 }
 
-// Upload video to Gemini Files API
+// Upload video to Gemini Files API with rapid polling and strict abort timeouts
 async function uploadToGeminiFiles(filePath, apiKey) {
   const fileSize = fs.statSync(filePath).size;
   const mimeType = 'video/mp4';
   const displayName = path.basename(filePath);
 
-  const initRes = await fetch(
-    `https://generativelanguage.googleapis.com/upload/v1beta/files?key=${apiKey}`,
-    {
-      method: 'POST',
-      headers: {
-        'X-Goog-Upload-Protocol': 'resumable',
-        'X-Goog-Upload-Command': 'start',
-        'X-Goog-Upload-Header-Content-Length': String(fileSize),
-        'X-Goog-Upload-Header-Content-Type': mimeType,
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({ file: { display_name: displayName } }),
-    }
-  );
+  const initController = new AbortController();
+  const initTimeout = setTimeout(() => initController.abort(), 3500);
+  let initRes;
+  try {
+    initRes = await fetch(
+      `https://generativelanguage.googleapis.com/upload/v1beta/files?key=${apiKey}`,
+      {
+        method: 'POST',
+        signal: initController.signal,
+        headers: {
+          'X-Goog-Upload-Protocol': 'resumable',
+          'X-Goog-Upload-Command': 'start',
+          'X-Goog-Upload-Header-Content-Length': String(fileSize),
+          'X-Goog-Upload-Header-Content-Type': mimeType,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ file: { display_name: displayName } }),
+      }
+    );
+  } finally {
+    clearTimeout(initTimeout);
+  }
 
   if (!initRes.ok) {
     throw new Error(`Gemini Files API init failed: ${initRes.status}`);
@@ -388,15 +398,23 @@ async function uploadToGeminiFiles(filePath, apiKey) {
   if (!uploadUrl) throw new Error('No upload URL returned from Gemini Files API');
 
   const fileBuffer = fs.readFileSync(filePath);
-  const uploadRes = await fetch(uploadUrl, {
-    method: 'POST',
-    headers: {
-      'Content-Length': String(fileSize),
-      'X-Goog-Upload-Offset': '0',
-      'X-Goog-Upload-Command': 'upload, finalize',
-    },
-    body: fileBuffer,
-  });
+  const uploadController = new AbortController();
+  const uploadTimeout = setTimeout(() => uploadController.abort(), 6000);
+  let uploadRes;
+  try {
+    uploadRes = await fetch(uploadUrl, {
+      method: 'POST',
+      signal: uploadController.signal,
+      headers: {
+        'Content-Length': String(fileSize),
+        'X-Goog-Upload-Offset': '0',
+        'X-Goog-Upload-Command': 'upload, finalize',
+      },
+      body: fileBuffer,
+    });
+  } finally {
+    clearTimeout(uploadTimeout);
+  }
 
   if (!uploadRes.ok) {
     throw new Error(`Gemini Files upload failed: ${uploadRes.status}`);
@@ -410,23 +428,34 @@ async function uploadToGeminiFiles(filePath, apiKey) {
 
   let fileState = uploadData.file?.state || 'PROCESSING';
   let pollAttempts = 0;
-  const maxPolls = 25;
+  const maxPolls = 6;
 
   while (fileState === 'PROCESSING' && pollAttempts < maxPolls) {
-    await new Promise(r => setTimeout(r, 800));
+    await new Promise(r => setTimeout(r, 500));
     pollAttempts++;
     
-    const statusRes = await fetch(
-      `https://generativelanguage.googleapis.com/v1beta/${fileName}?key=${apiKey}`
-    );
-    if (statusRes.ok) {
-      const statusData = await statusRes.json();
-      fileState = statusData.state || 'PROCESSING';
+    try {
+      const statusController = new AbortController();
+      const statusTimeout = setTimeout(() => statusController.abort(), 2500);
+      try {
+        const statusRes = await fetch(
+          `https://generativelanguage.googleapis.com/v1beta/${fileName}?key=${apiKey}`,
+          { signal: statusController.signal }
+        );
+        if (statusRes.ok) {
+          const statusData = await statusRes.json();
+          fileState = statusData.state || 'PROCESSING';
+        }
+      } finally {
+        clearTimeout(statusTimeout);
+      }
+    } catch {
+      // Continue polling
     }
   }
 
   if (fileState !== 'ACTIVE') {
-    throw new Error(`File did not become ACTIVE (state: ${fileState})`);
+    throw new Error(`File did not become ACTIVE quickly (state: ${fileState})`);
   }
 
   return { fileUri, mimeType };
@@ -442,7 +471,7 @@ async function fetchLiveNews(query, secondaryQuery = null) {
       if (!cleanQuery) return [];
       const url = `https://news.google.com/rss/search?q=${encodeURIComponent(cleanQuery)}&hl=id&gl=ID&ceid=ID:id`;
       const controller = new AbortController();
-      const t = setTimeout(() => controller.abort(), 6000);
+      const t = setTimeout(() => controller.abort(), 3500);
       try {
         const res = await fetch(url, {
           signal: controller.signal,
@@ -1183,10 +1212,11 @@ FORMAT JSON WAJIB (tanpa markdown wrapper):
 }`;
 
   let lastError = null;
-  for (const modelName of candidateModels) {
+  const activeModels = candidateModels.slice(0, 2);
+  for (const modelName of activeModels) {
     const endpoint = `https://generativelanguage.googleapis.com/v1beta/models/${modelName}:generateContent?key=${apiKey}`;
     const controller = new AbortController();
-    const t = setTimeout(() => controller.abort(), 90000);
+    const t = setTimeout(() => controller.abort(), 12000);
 
     try {
       const requestBody = {
@@ -1273,10 +1303,11 @@ Caption: ${fullCaptionText}
 
 Format respons WAJIB JSON persis sesuai struktur VerifTok. Pastikan termasuk field clickbaitMeter, scamDetection, dan counterComment seperti di analisis video.`;
 
-  for (const modelName of candidateModels) {
+  const activeModels = candidateModels.slice(0, 2);
+  for (const modelName of activeModels) {
     const endpoint = `https://generativelanguage.googleapis.com/v1beta/models/${modelName}:generateContent?key=${apiKey}`;
     const controller = new AbortController();
-    const t = setTimeout(() => controller.abort(), 35000);
+    const t = setTimeout(() => controller.abort(), 10000);
 
     try {
       const parts = [...photoParts, { text: promptText }];
@@ -1394,10 +1425,11 @@ Caption: ${fullCaptionText}
 Pengunggah: ${videoMeta?.author_name || 'Kreator TikTok'} (@${videoMeta?.author_unique_id || 'unknown'})
 ${realCommentsContext}`;
 
-  for (const modelName of candidateModels) {
+  const activeModels = candidateModels.slice(0, 2);
+  for (const modelName of activeModels) {
     const endpoint = `https://generativelanguage.googleapis.com/v1beta/models/${modelName}:generateContent?key=${apiKey}`;
     const controller = new AbortController();
-    const t = setTimeout(() => controller.abort(), 20000);
+    const t = setTimeout(() => controller.abort(), 8000);
 
     try {
       const res = await fetch(endpoint, {
